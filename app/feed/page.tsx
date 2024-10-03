@@ -1,5 +1,5 @@
-import { Layout } from "./_components/Layout";
+import { MainFeed } from "./_components/MainFeed";
 
 export default function FeedPage() {
-  return <Layout />;
+  return <MainFeed />;
 }

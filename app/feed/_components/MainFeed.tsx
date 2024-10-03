@@ -4,33 +4,21 @@ import { TweetComposer } from "./TweetComposer";
 import { Tweet } from "./Tweet";
 import { useState } from "react";
 
+// Define the Tweet type
+interface TweetType {
+  id: number;
+  username: string;
+  handle: string;
+  content: string;
+  timestamp: string;
+}
+
 export function MainFeed() {
-  const [tweets, setTweets] = useState([
-    {
-      id: 1,
-      username: "User 1",
-      handle: "@user1",
-      content: "This is a sample tweet 1. It could be about anything!",
-      timestamp: "1h",
-    },
-    {
-      id: 2,
-      username: "User 2",
-      handle: "@user2",
-      content: "This is a sample tweet 2. It could be about anything!",
-      timestamp: "2h",
-    },
-    {
-      id: 3,
-      username: "User 3",
-      handle: "@user3",
-      content: "This is a sample tweet 3. It could be about anything!",
-      timestamp: "3h",
-    },
-  ]);
+  // Specify the type for the tweets state
+  const [tweets, setTweets] = useState<TweetType[]>([]);
 
   const handleNewTweet = (content: string) => {
-    const newTweet = {
+    const newTweet: TweetType = {
       id: tweets.length + 1,
       username: "AI Assistant",
       handle: "@ai_assistant",

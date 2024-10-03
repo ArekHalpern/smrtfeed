@@ -4,8 +4,10 @@ import { Search } from "lucide-react";
 
 export function Header() {
   return (
-    <header className="sticky top-0 z-10 bg-background border-b">
-      <div className="container flex items-center justify-between h-14 px-4">
+    <header className="sticky top-0 z-10 bg-background border-b h-16">
+      {" "}
+      {/* Added h-16 for fixed height */}
+      <div className="container flex items-center justify-between h-full px-4">
         <h1 className="text-xl font-bold">SmrtFeed</h1>
         <div className="relative w-full max-w-sm mx-4">
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
