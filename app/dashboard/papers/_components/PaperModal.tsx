@@ -20,12 +20,12 @@ import {
 } from "@/components/ui/accordion";
 import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
 
-interface Author {
+export interface Author {
   name: string;
   affiliation: string;
 }
 
-interface Insight {
+export interface Insight {
   description: string;
 }
 
@@ -179,7 +179,6 @@ export function PaperModal({ paper, onClose, onUpdate }: PaperModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Authors</Label>
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="authors">
                 <AccordionTrigger>
@@ -290,7 +289,6 @@ export function PaperModal({ paper, onClose, onUpdate }: PaperModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="key_insights">Key Insights</Label>
             <Accordion type="single" collapsible className="w-full">
               <AccordionItem value="key-insights">
                 <AccordionTrigger>

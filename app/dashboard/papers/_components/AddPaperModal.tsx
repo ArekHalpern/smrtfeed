@@ -6,11 +6,16 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { PDFExtraction } from "@/components/pdf-extraction";
-import { analyzeAndSaveResearchPaper } from "../actions";
+import {
+  analyzeAndSaveResearchPaper,
+  extractAndSavePaperFromUrl,
+} from "../actions";
 import { AlertCircle, CheckCircle } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AddPaperModalProps {
   isOpen: boolean;
@@ -24,6 +29,7 @@ export function AddPaperModal({
   onComplete,
 }: AddPaperModalProps) {
   const [input, setInput] = useState("");
+  const [url, setUrl] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -48,6 +54,26 @@ export function AddPaperModal({
     setIsLoading(false);
   };
 
+  const handleUrlSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      await extractAndSavePaperFromUrl(url);
+      setSuccessMessage("Paper successfully extracted and added to SmrtFeed");
+      setUrl("");
+      setTimeout(() => {
+        onComplete();
+      }, 2000);
+    } catch (error) {
+      setErrorMessage(
+        `Failed to extract and save: ${(error as Error).message}`
+      );
+    }
+    setIsLoading(false);
+  };
+
   const handlePDFExtract = (text: string) => {
     setInput(text);
   };
@@ -58,25 +84,62 @@ export function AddPaperModal({
         <DialogHeader>
           <DialogTitle>Add Paper to SmrtFeed</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="pdfUpload">Upload PDF</Label>
-            <PDFExtraction onExtract={handlePDFExtract} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="input">Research Paper Text</Label>
-            <Textarea
-              id="input"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Enter research paper text here or upload a PDF above..."
-              className="min-h-[200px]"
-            />
-          </div>
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? "Processing..." : "Add Paper To SmrtFeed"}
-          </Button>
-        </form>
+        <Tabs defaultValue="text">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="text">Text Input</TabsTrigger>
+            <TabsTrigger value="pdf">PDF Upload</TabsTrigger>
+            <TabsTrigger value="url">URL Input</TabsTrigger>
+          </TabsList>
+          <TabsContent value="text">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="input">Research Paper Text</Label>
+                <Textarea
+                  id="input"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Enter research paper text here..."
+                  className="min-h-[200px]"
+                />
+              </div>
+              <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? "Processing..." : "Add Paper To SmrtFeed"}
+              </Button>
+            </form>
+          </TabsContent>
+          <TabsContent value="pdf">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="pdfUpload">Upload PDF</Label>
+                <PDFExtraction onExtract={handlePDFExtract} />
+              </div>
+              <Button
+                onClick={handleSubmit}
+                disabled={isLoading}
+                className="w-full"
+              >
+                {isLoading ? "Processing..." : "Add Paper To SmrtFeed"}
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="url">
+            <form onSubmit={handleUrlSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="url">Paper URL</Label>
+                <Input
+                  id="url"
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  placeholder="https://example.com/paper.pdf"
+                />
+              </div>
+              <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? "Processing..." : "Extract and Add Paper"}
+              </Button>
+            </form>
+          </TabsContent>
+        </Tabs>
         {errorMessage && (
           <div className="mt-4 p-2 bg-red-100 text-red-800 rounded flex items-center">
             <AlertCircle className="mr-2" />

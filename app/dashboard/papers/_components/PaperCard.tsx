@@ -1,10 +1,10 @@
-import { Paper } from "@prisma/client";
+import { ExtendedPaper } from "./PaperModal";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, FileTextIcon } from "lucide-react";
 
 interface PaperCardProps {
-  paper: Paper;
+  paper: ExtendedPaper;
   onClick: () => void;
 }
 
