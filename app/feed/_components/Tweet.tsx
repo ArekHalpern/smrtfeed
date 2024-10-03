@@ -10,18 +10,15 @@ interface TweetProps {
   timestamp: string;
 }
 
-export function Tweet({
-  id,
-  username,
-  handle,
-  content,
-  timestamp,
-}: TweetProps) {
+export function Tweet({ username, handle, content, timestamp }: TweetProps) {
   return (
     <div className="border rounded-lg p-4">
       <div className="flex items-start gap-4">
         <Avatar>
-          <AvatarImage alt={username} src={`/placeholder-user-${id}.jpg`} />
+          <AvatarImage
+            alt={username}
+            src={`https://ui-avatars.com/api/?name=${username}&background=random`}
+          />
           <AvatarFallback>{username[0]}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
@@ -30,7 +27,7 @@ export function Tweet({
             <span className="text-muted-foreground">{handle}</span>
             <span className="text-muted-foreground">· {timestamp}</span>
           </div>
-          <p className="mt-1">{content}</p>
+          <p className="mt-1 whitespace-pre-wrap break-words">{content}</p>
           <div className="flex gap-4 mt-2">
             <Button size="icon" variant="ghost">
               <MessageCircle className="w-4 h-4" />

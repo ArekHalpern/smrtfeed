@@ -1,8 +1,11 @@
+"use client";
+
 import { TweetComposer } from "./TweetComposer";
 import { Tweet } from "./Tweet";
+import { useState } from "react";
 
 export function MainFeed() {
-  const tweets = [
+  const [tweets, setTweets] = useState([
     {
       id: 1,
       username: "User 1",
@@ -24,11 +27,22 @@ export function MainFeed() {
       content: "This is a sample tweet 3. It could be about anything!",
       timestamp: "3h",
     },
-  ];
+  ]);
+
+  const handleNewTweet = (content: string) => {
+    const newTweet = {
+      id: tweets.length + 1,
+      username: "AI Assistant",
+      handle: "@ai_assistant",
+      content,
+      timestamp: "Just now",
+    };
+    setTweets([newTweet, ...tweets]);
+  };
 
   return (
     <main className="flex-1 max-w-3xl">
-      <TweetComposer />
+      <TweetComposer onNewTweet={handleNewTweet} />
       <div className="space-y-4">
         {tweets.map((tweet) => (
           <Tweet key={tweet.id} {...tweet} />
