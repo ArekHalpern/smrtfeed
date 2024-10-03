@@ -1,7 +1,7 @@
 "use client";
 
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { IconFileText } from "@tabler/icons-react";
+import { IconFileText, IconHome, IconUpload } from "@tabler/icons-react";
 
 export default function DashboardLayout({
   children,
@@ -9,10 +9,17 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <Sidebar>
-      <div className="flex min-h-screen">
-        <SidebarBody>
+    <div className="flex h-[calc(100vh-4rem)] w-full">
+      <Sidebar>
+        <SidebarBody className="w-[240px]">
           <div className="space-y-4">
+            <SidebarLink
+              link={{
+                label: "Home",
+                href: "/dashboard/feed",
+                icon: <IconHome size={20} />,
+              }}
+            />
             <SidebarLink
               link={{
                 label: "Papers",
@@ -20,10 +27,19 @@ export default function DashboardLayout({
                 icon: <IconFileText size={20} />,
               }}
             />
+            <SidebarLink
+              link={{
+                label: "Upload Papers",
+                href: "/dashboard/pdf-to-json-ui",
+                icon: <IconUpload size={20} />,
+              }}
+            />
           </div>
         </SidebarBody>
-        <main className="flex-1 p-6 ml-[60px] md:ml-[300px]">{children}</main>
-      </div>
-    </Sidebar>
+      </Sidebar>
+      <main className="flex-1 overflow-auto p-6">
+        <div className="max-w-3xl mx-auto">{children}</div>
+      </main>
+    </div>
   );
 }

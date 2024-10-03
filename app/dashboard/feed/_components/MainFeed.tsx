@@ -29,13 +29,13 @@ export function MainFeed() {
   };
 
   return (
-    <main className="flex-1 max-w-3xl">
+    <div>
       <TweetComposer onNewTweet={handleNewTweet} />
       <div className="space-y-4">
         {tweets.map((tweet) => (
           <Tweet key={tweet.id} {...tweet} />
         ))}
       </div>
-    </main>
+    </div>
   );
 }

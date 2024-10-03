@@ -8,6 +8,7 @@ import {
   PDFDocumentProxy,
   version,
 } from "pdfjs-dist";
+import { Upload } from "lucide-react";
 
 // Set the worker source
 GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
@@ -58,16 +59,20 @@ export function PDFExtraction({ onExtract }: PDFExtractionProps) {
   return (
     <div
       {...getRootProps()}
-      className="flex items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer border-gray-300 hover:border-gray-400"
+      className="flex items-center justify-center w-full p-6 border-2 border-dashed rounded-lg cursor-pointer border-gray-300 hover:border-gray-400 transition-colors duration-200"
     >
       <input {...getInputProps()} />
-      <div className="text-center">
+      <div className="text-center space-y-2">
+        <Upload className="mx-auto h-12 w-12 text-gray-400" />
         {isDragActive ? (
-          <p>Drop the PDF file here ...</p>
+          <p className="text-sm text-gray-600">Drop the PDF file here ...</p>
         ) : (
-          <p>
-            Drag &apos;n&apos; drop a PDF file here, or click to select a file
-          </p>
+          <>
+            <p className="text-sm text-gray-600">
+              Drag &apos;n&apos; drop a PDF file here
+            </p>
+            <p className="text-xs text-gray-500">or click to select a file</p>
+          </>
         )}
       </div>
     </div>

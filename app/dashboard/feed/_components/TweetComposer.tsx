@@ -66,7 +66,7 @@ export function TweetComposer({
       const generatedTweet = await generateTweet(selectedPaperId);
       onNewTweet(generatedTweet);
       setNotification({
-        message: "Tweet generated successfully!",
+        message: "Success!",
         type: "success",
       });
     } catch (error) {
@@ -134,9 +134,8 @@ export function TweetComposer({
             onClick={handleGenerateTweet}
             disabled={isGenerating || !selectedPaperId}
           >
-            {isGenerating ? "Generating..." : "Generate Tweet"}
+            {isGenerating ? "Generating..." : "Generate Insights"}
           </Button>
-          <Button>Post</Button>
         </div>
       </div>
       {notification && (
