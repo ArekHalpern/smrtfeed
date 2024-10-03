@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         "Key insight 4",
         "Key insight 5"
       ],
-      "conclusion": "A brief conclusion (max 20 words)"
+      "conclusion": "A brief conclusion (max 50 words)"
     }
 
     Ensure that the output is valid JSON and can be parsed directly. Do not include any markdown formatting or code blocks.`;

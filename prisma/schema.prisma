@@ -8,12 +8,13 @@ datasource db {
 }
 
 model Paper {
-  id           String   @id @default(uuid())
-  title        String
-  authors      Json // Will store an array of Author objects
-  keywords     String[]
-  key_insights Json // Will store an array of Insight objects
-  conclusion   String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id            String   @id @default(uuid())
+  title         String
+  authors       Json // Will store an array of Author objects
+  keywords      String[]
+  key_insights  Json // Will store an array of Insight objects
+  conclusion    String?
+  datePublished DateTime // Add this line
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }

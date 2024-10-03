@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { analyzeResearchPaper, saveToDatabase } from "./action";
+import { analyzeAndSaveResearchPaper } from "./action";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -15,38 +15,25 @@ export default function ApiTester() {
     null
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
     try {
-      const result = await analyzeResearchPaper(input);
-      setResponse(result);
+      const result = await analyzeAndSaveResearchPaper(input);
+      setResponse(result.paper);
+      setSuccessMessage(`Paper saved to database with ID: ${result.id}`);
     } catch (error) {
       setResponse(null);
-      setErrorMessage(`Analysis failed: ${(error as Error).message}`);
+      setErrorMessage(
+        `Failed to analyze and save: ${(error as Error).message}`
+      );
     }
     setIsLoading(false);
-  };
-
-  const handleSave = async () => {
-    if (!response) return;
-    setIsSaving(true);
-    setErrorMessage(null);
-    try {
-      const result = await saveToDatabase(response);
-      if (result.success) {
-        setErrorMessage(`Saved to database with ID: ${result.id}`);
-      } else {
-        throw new Error(result.error);
-      }
-    } catch (error) {
-      setErrorMessage(`Failed to save: ${(error as Error).message}`);
-    }
-    setIsSaving(false);
   };
 
   const handlePDFExtract = (text: string) => {
@@ -55,7 +42,7 @@ export default function ApiTester() {
 
   return (
     <div className="container mx-auto p-4 max-w-4xl">
-      <h1 className="text-2xl font-bold mb-4">API Tester</h1>
+      <h1 className="text-2xl font-bold mb-4">Add Paper to SmrtFeed</h1>
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Upload PDF</CardTitle>
@@ -76,7 +63,7 @@ export default function ApiTester() {
           />
         </div>
         <Button type="submit" disabled={isLoading} className="w-full">
-          {isLoading ? "Analyzing..." : "Analyze"}
+          {isLoading ? "Processing..." : "Add File To SmrtFeed"}
         </Button>
       </form>
       {errorMessage && (
@@ -84,22 +71,20 @@ export default function ApiTester() {
           {errorMessage}
         </div>
       )}
+      {successMessage && (
+        <div className="mt-4 p-2 bg-green-100 text-green-800 rounded">
+          {successMessage}
+        </div>
+      )}
       {response && (
         <Card className="mt-6">
           <CardHeader>
-            <CardTitle>Response</CardTitle>
+            <CardTitle>Processed Paper</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="bg-muted p-4 rounded-md overflow-x-auto text-sm whitespace-pre-wrap break-words">
               <code>{JSON.stringify(response, null, 2)}</code>
             </pre>
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              className="mt-4 w-full"
-            >
-              {isSaving ? "Saving..." : "Save to Database"}
-            </Button>
           </CardContent>
         </Card>
       )}

@@ -4,21 +4,32 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function generateTweet() {
+export async function getPapers() {
+  try {
+    const papers = await prisma.paper.findMany({
+      select: { id: true, title: true, datePublished: true },
+      orderBy: { datePublished: 'desc' }
+    });
+    return papers;
+  } catch (error) {
+    console.error("Error fetching papers:", error);
+    throw error;
+  }
+}
+
+export async function generateTweet(paperId: string) {
   console.log("generateTweet function called");
   try {
-    // Fetch a random paper ID from the database
-    const randomPaper = await prisma.paper.findFirst({
-      select: { id: true, title: true },
-      orderBy: { id: 'asc' }
+    const paper = await prisma.paper.findUnique({
+      where: { id: paperId },
+      select: { id: true, title: true }
     });
 
-    if (!randomPaper) {
-      throw new Error("No papers found in the database");
+    if (!paper) {
+      throw new Error("Paper not found");
     }
 
-    const paperId = randomPaper.id;
-    const paperTitle = randomPaper.title;
+    const paperTitle = paper.title;
     console.log("Using paperId:", paperId);
 
     const apiUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/openai/create-insight`;

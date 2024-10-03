@@ -4,6 +4,8 @@ import Link, { LinkProps } from "next/link";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { IconMenu2, IconX } from "@tabler/icons-react";
+// Remove this line:
+// import { useTheme } from "next-themes";
 
 interface Links {
   label: string;
@@ -71,6 +73,8 @@ export const Sidebar = ({
 };
 
 export const SidebarBody = (props: React.ComponentProps<typeof motion.div>) => {
+  // Remove this line:
+  // const { theme } = useTheme();
   return (
     <>
       <DesktopSidebar {...props} />
@@ -89,7 +93,8 @@ export const DesktopSidebar = ({
     <>
       <motion.div
         className={cn(
-          "h-[calc(100vh-4rem)] px-4 py-4 hidden md:flex md:flex-col bg-[hsl(240,10%,3.9%)] border-r border-white/10 w-[300px] flex-shrink-0 fixed left-0 top-16 bottom-0",
+          "h-[calc(100vh-4rem)] px-4 py-4 hidden md:flex md:flex-col border-r flex-shrink-0 fixed left-0 top-16 bottom-0",
+          "bg-background text-foreground border-border",
           className
         )}
         animate={{
@@ -115,12 +120,16 @@ export const MobileSidebar = ({
     <>
       <div
         className={cn(
-          "h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-[hsl(240,10%,3.9%)] w-full"
+          "h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between w-full",
+          "bg-background text-foreground"
         )}
         {...props}
       >
         <div className="flex justify-end z-20 w-full">
-          <IconMenu2 className="text-white" onClick={() => setOpen(!open)} />
+          <IconMenu2
+            className="text-foreground"
+            onClick={() => setOpen(!open)}
+          />
         </div>
         <AnimatePresence>
           {open && (
@@ -133,12 +142,13 @@ export const MobileSidebar = ({
                 ease: "easeInOut",
               }}
               className={cn(
-                "fixed h-full w-full inset-0 bg-[hsl(240,10%,3.9%)] border-r border-white/10 p-10 z-[100] flex flex-col justify-between",
+                "fixed h-full w-full inset-0 border-r p-10 z-[100] flex flex-col justify-between",
+                "bg-background text-foreground border-border",
                 className
               )}
             >
               <div
-                className="absolute right-10 top-10 z-50 text-white"
+                className="absolute right-10 top-10 z-50 text-foreground"
                 onClick={() => setOpen(!open)}
               >
                 <IconX />
