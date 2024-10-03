@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { PDFExtraction } from "@/components/pdf-extraction";
 
 export default function ApiTester() {
   const [input, setInput] = useState("");
@@ -24,9 +25,21 @@ export default function ApiTester() {
     setIsLoading(false);
   };
 
+  const handlePDFExtract = (text: string) => {
+    setInput(text);
+  };
+
   return (
-    <div className="container mx-auto p-4 max-w-2xl">
+    <div className="container mx-auto p-4 max-w-4xl">
       <h1 className="text-2xl font-bold mb-4">API Tester</h1>
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Upload PDF</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PDFExtraction onExtract={handlePDFExtract} />
+        </CardContent>
+      </Card>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="input">Research Paper Text</Label>
@@ -34,8 +47,8 @@ export default function ApiTester() {
             id="input"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Enter research paper text here..."
-            className="min-h-[100px]"
+            placeholder="Enter research paper text here or upload a PDF above..."
+            className="min-h-[200px]"
           />
         </div>
         <Button type="submit" disabled={isLoading} className="w-full">
@@ -48,7 +61,7 @@ export default function ApiTester() {
             <CardTitle>Response</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="bg-muted p-4 rounded-md overflow-x-auto text-sm">
+            <pre className="bg-muted p-4 rounded-md overflow-x-auto text-sm whitespace-pre-wrap break-words">
               <code>{response}</code>
             </pre>
           </CardContent>
