@@ -34,7 +34,6 @@ export async function POST(request: Request) {
     });
 
     const prompt = `You are tasked with generating a summarization about the following research paper:
-    Title: ${paper.title}
     Authors: ${JSON.stringify(paper.authors)}
     Keywords: ${paper.keywords.join(', ')}
     Key Insights: ${JSON.stringify(paper.key_insights)}
@@ -42,7 +41,7 @@ export async function POST(request: Request) {
     
     Please provide a summary in the following JSON format:
     {
-      "title": "paper title",
+    
       "summary": "A concise summary of the paper (max 50 words)",
       "keyInsights": [
         "Key insight 1",

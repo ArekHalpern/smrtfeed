@@ -49,7 +49,7 @@ export async function generateTweet() {
     }
 
     // Format the content into a tweet-like structure with line breaks
-    const tweet = `${paperTitle} Snapshot: ${data.content.title}\n\n${data.content.summary}\n\nKey Insights:\n${data.content.keyInsights.map((insight: string, index: number) => `${index + 1}. ${insight}`).join('\n')}\n\nConclusion:\n${data.content.conclusion}`;
+    const tweet = `"${paperTitle}" Overview \n\n${data.content.summary}\n\nKey Insights:\n${data.content.keyInsights.map((insight: string, index: number) => `${index + 1}. ${insight}`).join('\n')}\n\nConclusion:\n${data.content.conclusion}`;
 
     return tweet;
   } catch (error) {
