@@ -1,53 +1,125 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, MoreHorizontal, Repeat, Star } from "lucide-react";
+import { Copy } from "lucide-react";
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface TweetProps {
   id: number;
-  username: string;
-  handle: string;
   content: string;
   timestamp: string;
 }
 
-export function Tweet({ username, handle, content, timestamp }: TweetProps) {
+export function Tweet({ content, timestamp }: TweetProps) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Extract title and date published from the content
+  const titleMatch = content.match(/"([^"]+)"/);
+  const dateMatch = content.match(/Published: (\d{4}-\d{2}-\d{2})/);
+  const title = titleMatch ? titleMatch[1] : "Untitled";
+  const datePublished = dateMatch ? dateMatch[1] : "Unknown date";
+
+  // Remove title and date from the main content
+  const mainContent = content.replace(
+    /"([^"]+)"\nPublished: \d{4}-\d{2}-\d{2}\n\n/,
+    ""
+  );
+
   return (
-    <div className="border rounded-lg p-4">
-      <div className="flex items-start gap-4">
-        <Avatar>
+    <motion.div
+      initial={{ opacity: 0, y: 50, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        duration: 0.5,
+        ease: [0.6, -0.05, 0.01, 0.99],
+        scale: {
+          type: "spring",
+          damping: 15,
+          stiffness: 300,
+          restDelta: 0.001,
+        },
+      }}
+      className="border rounded-lg p-3 md:p-4 bg-card text-card-foreground shadow-lg"
+    >
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+        className="flex flex-col md:flex-row md:items-start gap-3 md:gap-4"
+      >
+        <Avatar className="w-10 h-10 md:w-12 md:h-12">
           <AvatarImage
-            alt={username}
-            src={`https://ui-avatars.com/api/?name=${username}&background=random`}
+            alt="SmrtFeed Assistant"
+            src={`https://ui-avatars.com/api/?name=SmrtFeed+Assistant&background=random`}
           />
-          <AvatarFallback>{username[0]}</AvatarFallback>
+          <AvatarFallback>SF</AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-bold">{username}</span>
-            <span className="text-muted-foreground">{handle}</span>
-            <span className="text-muted-foreground">· {timestamp}</span>
+          <div className="flex flex-col md:flex-row md:items-center justify-between">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3, duration: 0.5 }}
+              className="flex flex-col"
+            >
+              <span className="text-xs md:text-sm text-muted-foreground">
+                @smrtfeed · {timestamp}
+              </span>
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+              className="flex items-center gap-2 mt-2 md:mt-0"
+            >
+              <Button size="sm" variant="ghost" onClick={handleCopy}>
+                <Copy className="w-3 h-3 md:w-4 md:h-4" />
+                <span className="sr-only">Copy tweet</span>
+              </Button>
+              {copied && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  className="text-xs md:text-sm text-muted-foreground"
+                >
+                  Copied!
+                </motion.span>
+              )}
+            </motion.div>
           </div>
-          <p className="mt-1 whitespace-pre-wrap break-words">{content}</p>
-          <div className="flex gap-4 mt-2">
-            <Button size="icon" variant="ghost">
-              <MessageCircle className="w-4 h-4" />
-              <span className="sr-only">Reply</span>
-            </Button>
-            <Button size="icon" variant="ghost">
-              <Repeat className="w-4 h-4" />
-              <span className="sr-only">Retweet</span>
-            </Button>
-            <Button size="icon" variant="ghost">
-              <Star className="w-4 h-4" />
-              <span className="sr-only">Like</span>
-            </Button>
-            <Button size="icon" variant="ghost">
-              <MoreHorizontal className="w-4 h-4" />
-              <span className="sr-only">More options</span>
-            </Button>
-          </div>
+          <motion.h3
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="font-semibold mt-2 text-sm md:text-base"
+          >
+            {title}
+          </motion.h3>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.5 }}
+            className="text-xs md:text-sm text-muted-foreground"
+          >
+            Published: {datePublished}
+          </motion.p>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.5 }}
+            className="mt-1 whitespace-pre-wrap break-words text-sm md:text-base"
+          >
+            {mainContent}
+          </motion.p>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

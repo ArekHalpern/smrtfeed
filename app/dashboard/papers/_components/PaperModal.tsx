@@ -18,7 +18,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ChevronDown, ChevronUp, Plus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Plus, X, Trash2 } from "lucide-react";
+import { deletePaper } from "../actions";
 
 export interface Author {
   name: string;
@@ -37,15 +38,22 @@ export type ExtendedPaper = Omit<PrismaPaper, "authors" | "key_insights"> & {
   authors: JsonCompatible<Author[]>;
   keywords: string[];
   key_insights: JsonCompatible<Insight[]>;
+  diagrams: string[]; // Add this line
 };
 
 interface PaperModalProps {
   paper: ExtendedPaper;
   onClose: () => void;
   onUpdate: (paper: ExtendedPaper) => void;
+  onDelete: (paperId: string) => void;
 }
 
-export function PaperModal({ paper, onClose, onUpdate }: PaperModalProps) {
+export function PaperModal({
+  paper,
+  onClose,
+  onUpdate,
+  onDelete,
+}: PaperModalProps) {
   const [editedPaper, setEditedPaper] = useState<ExtendedPaper>(paper);
   const [newKeyword, setNewKeyword] = useState("");
   const [newInsight, setNewInsight] = useState("");
@@ -132,14 +140,30 @@ export function PaperModal({ paper, onClose, onUpdate }: PaperModalProps) {
     });
   };
 
+  const handleDelete = async () => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this paper? This action cannot be undone."
+      )
+    ) {
+      const result = await deletePaper(paper.id);
+      if (result.success) {
+        onDelete(paper.id);
+      } else {
+        console.error("Failed to delete paper:", result.error);
+        // Optionally, show an error message to the user
+      }
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-[800px] w-[90vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-full sm:max-w-[900px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Paper</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label htmlFor="title">Title</Label>
               <Input
@@ -367,11 +391,29 @@ export function PaperModal({ paper, onClose, onUpdate }: PaperModalProps) {
             />
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+          <DialogFooter className="flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleDelete}
+              className="h-8 w-8"
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
-            <Button type="submit">Save Changes</Button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="w-full sm:w-auto"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="w-full sm:w-auto">
+                Save Changes
+              </Button>
+            </div>
           </DialogFooter>
         </form>
       </DialogContent>

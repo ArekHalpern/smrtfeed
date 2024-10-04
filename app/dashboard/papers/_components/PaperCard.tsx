@@ -12,18 +12,24 @@ export function PaperCard({ paper, onClick }: PaperCardProps) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold line-clamp-2">
+        <CardTitle className="text-base sm:text-lg font-semibold line-clamp-2">
           {paper.title}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center text-sm text-muted-foreground mb-2">
-          <CalendarIcon className="mr-2 h-4 w-4" />
+        <div className="flex items-center text-xs sm:text-sm text-muted-foreground mb-2">
+          <CalendarIcon className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
           {new Date(paper.datePublished).toLocaleDateString()}
         </div>
-        <p className="text-sm line-clamp-3 mb-4">{paper.conclusion}</p>
-        <Button onClick={onClick} variant="outline" className="w-full">
-          <FileTextIcon className="mr-2 h-4 w-4" />
+        <p className="text-xs sm:text-sm line-clamp-3 mb-4">
+          {paper.conclusion}
+        </p>
+        <Button
+          onClick={onClick}
+          variant="outline"
+          className="w-full text-xs sm:text-sm"
+        >
+          <FileTextIcon className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
           View Details
         </Button>
       </CardContent>

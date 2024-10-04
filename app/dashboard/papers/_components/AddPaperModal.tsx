@@ -14,7 +14,7 @@ import {
   analyzeAndSaveResearchPaper,
   extractAndSavePaperFromUrl,
 } from "../actions";
-import { AlertCircle, CheckCircle } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface AddPaperModalProps {
@@ -40,12 +40,16 @@ export function AddPaperModal({
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await analyzeAndSaveResearchPaper(input);
-      setSuccessMessage("Paper successfully added to SmrtFeed");
-      setInput("");
-      setTimeout(() => {
-        onComplete();
-      }, 2000);
+      const result = await analyzeAndSaveResearchPaper(input);
+      if (result.paper) {
+        setSuccessMessage("Paper successfully added to SmrtFeed");
+        setInput("");
+        setTimeout(() => {
+          onComplete();
+        }, 2000);
+      } else {
+        throw new Error("Failed to add paper");
+      }
     } catch (error) {
       setErrorMessage(
         `Failed to analyze and save: ${(error as Error).message}`
@@ -60,12 +64,16 @@ export function AddPaperModal({
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await extractAndSavePaperFromUrl(url);
-      setSuccessMessage("Paper successfully extracted and added to SmrtFeed");
-      setUrl("");
-      setTimeout(() => {
-        onComplete();
-      }, 2000);
+      const result = await extractAndSavePaperFromUrl(url);
+      if (result.success) {
+        setSuccessMessage("Paper successfully extracted and added to SmrtFeed");
+        setUrl("");
+        setTimeout(() => {
+          onComplete();
+        }, 2000);
+      } else {
+        throw new Error(result.error || "Failed to extract and add paper");
+      }
     } catch (error) {
       setErrorMessage(
         `Failed to extract and save: ${(error as Error).message}`
@@ -78,17 +86,50 @@ export function AddPaperModal({
     setInput(text);
   };
 
+  const renderButton = (
+    onClick: (() => void) | ((e: React.FormEvent) => Promise<void>),
+    text: string
+  ) => (
+    <Button
+      onClick={(e) => {
+        e.preventDefault();
+        if (onClick.length === 0) {
+          (onClick as () => void)();
+        } else {
+          (onClick as (e: React.FormEvent) => Promise<void>)(e);
+        }
+      }}
+      disabled={isLoading}
+      className="w-full"
+    >
+      {isLoading ? (
+        <>
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          Processing...
+        </>
+      ) : (
+        text
+      )}
+    </Button>
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[625px]">
+      <DialogContent className="sm:max-w-[95vw] w-full sm:max-w-[625px]">
         <DialogHeader>
           <DialogTitle>Add Paper to SmrtFeed</DialogTitle>
         </DialogHeader>
         <Tabs defaultValue="text">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="text">Text Input</TabsTrigger>
-            <TabsTrigger value="pdf">PDF Upload</TabsTrigger>
-            <TabsTrigger value="url">URL Input</TabsTrigger>
+            <TabsTrigger value="text" className="text-xs sm:text-sm">
+              Text Input
+            </TabsTrigger>
+            <TabsTrigger value="pdf" className="text-xs sm:text-sm">
+              PDF Upload
+            </TabsTrigger>
+            <TabsTrigger value="url" className="text-xs sm:text-sm">
+              URL Input
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="text">
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,9 +143,7 @@ export function AddPaperModal({
                   className="min-h-[200px]"
                 />
               </div>
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? "Processing..." : "Add Paper To SmrtFeed"}
-              </Button>
+              {renderButton(handleSubmit, "Add Paper To SmrtFeed")}
             </form>
           </TabsContent>
           <TabsContent value="pdf">
@@ -113,13 +152,7 @@ export function AddPaperModal({
                 <Label htmlFor="pdfUpload">Upload PDF</Label>
                 <PDFExtraction onExtract={handlePDFExtract} />
               </div>
-              <Button
-                onClick={handleSubmit}
-                disabled={isLoading}
-                className="w-full"
-              >
-                {isLoading ? "Processing..." : "Add Paper To SmrtFeed"}
-              </Button>
+              {renderButton(handleSubmit, "Add Paper To SmrtFeed")}
             </div>
           </TabsContent>
           <TabsContent value="url">
@@ -134,12 +167,15 @@ export function AddPaperModal({
                   placeholder="https://example.com/paper.pdf"
                 />
               </div>
-              <Button type="submit" disabled={isLoading} className="w-full">
-                {isLoading ? "Processing..." : "Extract and Add Paper"}
-              </Button>
+              {renderButton(handleUrlSubmit, "Add Paper To SmrtFeed")}
             </form>
           </TabsContent>
         </Tabs>
+        {isLoading && (
+          <p className="text-sm text-gray-500 mt-2">
+            This process may take 10 seconds to 1 minute. Please be patient.
+          </p>
+        )}
         {errorMessage && (
           <div className="mt-4 p-2 bg-red-100 text-red-800 rounded flex items-center">
             <AlertCircle className="mr-2" />

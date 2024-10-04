@@ -4,8 +4,7 @@ import Link, { LinkProps } from "next/link";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { IconMenu2, IconX } from "@tabler/icons-react";
-// Remove this line:
-// import { useTheme } from "next-themes";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface Links {
   label: string;
@@ -72,13 +71,17 @@ export const Sidebar = ({
   );
 };
 
-export const SidebarBody = (props: React.ComponentProps<typeof motion.div>) => {
-  // Remove this line:
-  // const { theme } = useTheme();
+export const SidebarBody = ({
+  children,
+  ...props
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => {
   return (
     <>
-      <DesktopSidebar {...props} />
-      <MobileSidebar {...(props as React.ComponentProps<"div">)} />
+      <DesktopSidebar className={props.className}>{children}</DesktopSidebar>
+      <MobileSidebar className={props.className}>{children}</MobileSidebar>
     </>
   );
 };
@@ -86,8 +89,10 @@ export const SidebarBody = (props: React.ComponentProps<typeof motion.div>) => {
 export const DesktopSidebar = ({
   className,
   children,
-  ...props
-}: React.ComponentProps<typeof motion.div>) => {
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) => {
   const { open, setOpen, animate } = useSidebar();
   return (
     <>
@@ -102,9 +107,14 @@ export const DesktopSidebar = ({
         }}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}
-        {...props}
       >
-        {children}
+        <div className="flex flex-col justify-between h-full w-full">
+          <div>{children}</div>
+          <div className="flex mb-4">
+            <ThemeToggle />
+            {open}
+          </div>
+        </div>
       </motion.div>
     </>
   );
@@ -113,8 +123,10 @@ export const DesktopSidebar = ({
 export const MobileSidebar = ({
   className,
   children,
-  ...props
-}: React.ComponentProps<"div">) => {
+}: {
+  className?: string;
+  children: React.ReactNode;
+}) => {
   const { open, setOpen } = useSidebar();
   return (
     <>
@@ -123,7 +135,6 @@ export const MobileSidebar = ({
           "h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between w-full",
           "bg-background text-foreground"
         )}
-        {...props}
       >
         <div className="flex justify-end z-20 w-full">
           <IconMenu2
@@ -147,13 +158,20 @@ export const MobileSidebar = ({
                 className
               )}
             >
-              <div
-                className="absolute right-10 top-10 z-50 text-foreground"
-                onClick={() => setOpen(!open)}
-              >
-                <IconX />
+              <div className="flex flex-col justify-between h-full">
+                <div>
+                  <div
+                    className="absolute right-10 top-10 z-50 text-foreground"
+                    onClick={() => setOpen(!open)}
+                  >
+                    <IconX />
+                  </div>
+                  {children}
+                </div>
+                <div className="flex mb-4">
+                  <ThemeToggle />
+                </div>
               </div>
-              {children}
             </motion.div>
           )}
         </AnimatePresence>
@@ -171,7 +189,15 @@ export const SidebarLink = ({
   className?: string;
   props?: LinkProps;
 }) => {
-  const { open, animate } = useSidebar();
+  const { open, animate, setOpen } = useSidebar();
+
+  const handleClick = () => {
+    // Close the sidebar on mobile when a link is clicked
+    if (window.innerWidth < 768) {
+      setOpen(false);
+    }
+  };
+
   return (
     <Link
       href={link.href}
@@ -179,6 +205,7 @@ export const SidebarLink = ({
         "flex items-center justify-start gap-2 group/sidebar py-2 text-foreground/80 hover:text-foreground transition-colors",
         className
       )}
+      onClick={handleClick}
       {...props}
     >
       {link.icon}

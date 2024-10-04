@@ -46,15 +46,20 @@ export default function PapersPage() {
     fetchPapers();
   };
 
+  const handlePaperDelete = (deletedPaperId: string) => {
+    setPapers(papers.filter((p) => p.id !== deletedPaperId));
+    setSelectedPaper(null);
+  };
+
   return (
     <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Saved Papers</h1>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Saved Papers</h1>
         <Button onClick={handleAddPaper}>
           <Plus className="mr-2 h-4 w-4" /> Add Paper
         </Button>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {papers.map((paper) => (
           <PaperCard
             key={paper.id}
@@ -68,6 +73,7 @@ export default function PapersPage() {
           paper={selectedPaper}
           onClose={() => setSelectedPaper(null)}
           onUpdate={handlePaperUpdate}
+          onDelete={handlePaperDelete}
         />
       )}
       <AddPaperModal

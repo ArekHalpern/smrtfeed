@@ -17,12 +17,27 @@ export async function getPapers() {
   }
 }
 
+export async function getRandomPaperId() {
+  try {
+    const papersCount = await prisma.paper.count();
+    const skip = Math.floor(Math.random() * papersCount);
+    const randomPaper = await prisma.paper.findFirst({
+      skip: skip,
+      select: { id: true }
+    });
+    return randomPaper?.id || null;
+  } catch (error) {
+    console.error("Error fetching random paper:", error);
+    throw error;
+  }
+}
+
 export async function generateTweet(paperId: string) {
   console.log("generateTweet function called");
   try {
     const paper = await prisma.paper.findUnique({
       where: { id: paperId },
-      select: { id: true, title: true }
+      select: { id: true, title: true, datePublished: true }
     });
 
     if (!paper) {
@@ -30,6 +45,7 @@ export async function generateTweet(paperId: string) {
     }
 
     const paperTitle = paper.title;
+    const datePublished = paper.datePublished.toISOString().split('T')[0]; // Format as YYYY-MM-DD
     console.log("Using paperId:", paperId);
 
     const apiUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/api/openai/create-insight`;
@@ -60,7 +76,7 @@ export async function generateTweet(paperId: string) {
     }
 
     // Format the content into a tweet-like structure with line breaks
-    const tweet = `"${paperTitle}" Overview \n\n${data.content.summary}\n\nKey Insights:\n${data.content.keyInsights.map((insight: string, index: number) => `${index + 1}. ${insight}`).join('\n')}\n\nConclusion:\n${data.content.conclusion}`;
+    const tweet = `"${paperTitle}"\nPublished: ${datePublished}\n\nOverview:\n${data.content.summary}\n\nKey Insights:\n${data.content.keyInsights.map((insight: string, index: number) => `${index + 1}. ${insight}`).join('\n')}\n\nConclusion:\n${data.content.conclusion}`;
 
     return tweet;
   } catch (error) {

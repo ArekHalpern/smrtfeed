@@ -14,8 +14,9 @@ model Paper {
   keywords      String[]
   key_insights  Json // Will store an array of Insight objects
   conclusion    String?
-  datePublished DateTime // Add this line
-  url           String? // Add this line
+  datePublished DateTime
+  url           String?
+  diagrams      String[] // Add this line to store an array of diagram URLs or references
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
