@@ -2,14 +2,34 @@
 
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import { IconFileText, IconHome } from "@tabler/icons-react";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { useState, useEffect } from "react";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const handleStart = () => setIsLoading(true);
+    const handleComplete = () => setIsLoading(false);
+
+    window.addEventListener("routeChangeStart", handleStart);
+    window.addEventListener("routeChangeComplete", handleComplete);
+    window.addEventListener("routeChangeError", handleComplete);
+
+    return () => {
+      window.removeEventListener("routeChangeStart", handleStart);
+      window.removeEventListener("routeChangeComplete", handleComplete);
+      window.removeEventListener("routeChangeError", handleComplete);
+    };
+  }, []);
+
   return (
     <div className="flex flex-col md:flex-row h-[calc(100vh-4rem)] w-full">
+      {isLoading && <LoadingSpinner />}
       <Sidebar>
         <SidebarBody className="w-full md:w-[240px]">
           <div className="space-y-4">

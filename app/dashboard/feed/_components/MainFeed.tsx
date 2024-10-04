@@ -4,7 +4,7 @@ import { TweetComposer } from "./TweetComposer";
 import { Tweet } from "./Tweet";
 import { useState, useCallback } from "react";
 import { usePullToRefresh } from "@/app/hooks/usePullToRefresh";
-import { generateTweet, getRandomPaperId } from "../actions";
+import { generateTweet, getRandomPaperId, refreshInsights } from "../actions";
 import { Loader2 } from "lucide-react";
 
 // Define the Tweet type
@@ -53,6 +53,37 @@ export function MainFeed() {
 
   const refreshing = usePullToRefresh(handleGenerateTweet);
 
+  const handleRefreshInsights = useCallback(
+    async (tweetId: number) => {
+      const tweetToRefresh = tweets.find((tweet) => tweet.id === tweetId);
+      if (!tweetToRefresh) return;
+
+      try {
+        // Extract the paperId from the tweet content (you might need to adjust this based on your actual data structure)
+        const paperIdMatch = tweetToRefresh.content.match(
+          /paperId: ([a-zA-Z0-9]+)/
+        );
+        if (!paperIdMatch)
+          throw new Error("Paper ID not found in tweet content");
+        const paperId = paperIdMatch[1];
+
+        const newInsights = await refreshInsights(paperId);
+
+        // Update the tweet with new insights
+        setTweets((prevTweets) =>
+          prevTweets.map((tweet) =>
+            tweet.id === tweetId
+              ? { ...tweet, content: newInsights || tweet.content }
+              : tweet
+          )
+        );
+      } catch (error) {
+        console.error("Failed to refresh insights:", error);
+      }
+    },
+    [tweets]
+  );
+
   return (
     <div className="space-y-4">
       {refreshing && (
@@ -68,7 +99,11 @@ export function MainFeed() {
       />
       <div className="space-y-3 md:space-y-4">
         {tweets.map((tweet) => (
-          <Tweet key={tweet.id} {...tweet} />
+          <Tweet
+            key={tweet.id}
+            {...tweet}
+            onRefreshInsights={handleRefreshInsights}
+          />
         ))}
       </div>
     </div>

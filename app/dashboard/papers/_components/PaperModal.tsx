@@ -18,7 +18,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { ChevronDown, ChevronUp, Plus, X, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  X,
+  Trash2,
+  ExternalLink,
+} from "lucide-react";
 import { deletePaper } from "../actions";
 
 export interface Author {
@@ -65,6 +72,7 @@ export function PaperModal({
   const [showAllAuthors, setShowAllAuthors] = useState(false);
   const visibleInsightsCount = 3;
   const visibleAuthorsCount = 3;
+  const [isEditingUrl, setIsEditingUrl] = useState(false);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -191,14 +199,51 @@ export function PaperModal({
             </div>
             <div className="space-y-2">
               <Label htmlFor="url">Paper URL</Label>
-              <Input
-                id="url"
-                name="url"
-                type="url"
-                value={editedPaper.url || ""}
-                onChange={handleInputChange}
-                placeholder="https://example.com/paper.pdf"
-              />
+              {isEditingUrl ? (
+                <div className="flex items-center space-x-2">
+                  <Input
+                    id="url"
+                    name="url"
+                    type="url"
+                    value={editedPaper.url || ""}
+                    onChange={handleInputChange}
+                    placeholder="https://example.com/paper.pdf"
+                    className="flex-grow"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingUrl(false)}
+                  >
+                    Save
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center space-x-2">
+                  {editedPaper.url ? (
+                    <a
+                      href={editedPaper.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-500 hover:underline flex items-center"
+                    >
+                      {editedPaper.url}
+                      <ExternalLink className="ml-2 h-4 w-4" />
+                    </a>
+                  ) : (
+                    <span className="text-gray-500">No URL provided</span>
+                  )}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsEditingUrl(true)}
+                  >
+                    Edit
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
