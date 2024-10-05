@@ -115,12 +115,14 @@ export function AddPaperModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[95vw] w-full sm:max-w-[625px]">
+      <DialogContent className="max-w-[95vw] w-full sm:max-w-[625px] p-4 sm:p-6">
         <DialogHeader>
-          <DialogTitle>Add Paper to SmrtFeed</DialogTitle>
+          <DialogTitle className="text-xl sm:text-2xl">
+            Add Paper to SmrtFeed
+          </DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="text">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="text" className="mt-4">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
             <TabsTrigger value="text" className="text-xs sm:text-sm">
               Text Input
             </TabsTrigger>
