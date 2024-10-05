@@ -394,7 +394,7 @@ export function PaperModal({
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] w-full sm:max-w-[900px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+      <DialogContent className="max-w-[95vw] w-full sm:max-w-[900px] max-h-[90vh] overflow-y-auto p-4 sm:p-6 py-6 sm:py-6">
         <DialogHeader>
           <DialogTitle className="text-xl sm:text-2xl font-bold">
             {editedPaper.title}
