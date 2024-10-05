@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "git": "git add . && git commit -m \"update\" && git push",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "vercel-build": "prisma generate && prisma migrate deploy && next build"
   },
   "dependencies": {
     "@prisma/client": "^5.20.0",
