@@ -5,8 +5,6 @@ import { revalidatePath } from 'next/cache';
 import { ExtendedPaper, Author, Insight } from "./_components/PaperModal";
 import prisma from '@/lib/db/prisma';
 
-export const maxDuration = 60; // Set a default max duration of 60 seconds for all functions in this file
-
 export async function getPapers(): Promise<ExtendedPaper[]> {
   try {
     const papers = await prisma.paper.findMany({
@@ -51,7 +49,7 @@ export async function updatePaper(paper: ExtendedPaper) {
   }
 }
 
-export const analyzeAndSaveResearchPaper = async (text: string) => {
+export async function analyzeAndSaveResearchPaper(text: string) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   
   if (!apiUrl) {
@@ -100,11 +98,9 @@ export const analyzeAndSaveResearchPaper = async (text: string) => {
     console.error('Error saving to database:', error);
     throw new Error(`Failed to save to database: ${(error as Error).message}`);
   }
-};
+}
 
-analyzeAndSaveResearchPaper.maxDuration = 120; // Set a specific max duration of 120 seconds for this function
-
-export const extractAndSavePaperFromUrl = async (url: string) => {
+export async function extractAndSavePaperFromUrl(url: string) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
   
   if (!apiUrl) {
@@ -157,9 +153,7 @@ export const extractAndSavePaperFromUrl = async (url: string) => {
     console.error('Error extracting or saving paper:', error);
     return { success: false, error: (error as Error).message };
   }
-};
-
-extractAndSavePaperFromUrl.maxDuration = 120; // Set a specific max duration of 120 seconds for this function
+}
 
 export async function deletePaper(paperId: string) {
   try {

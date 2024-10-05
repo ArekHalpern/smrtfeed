@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/dashboard/papers/actions.ts": {
+      "maxDuration": 60
+    }
+  }
+}
