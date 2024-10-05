@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/db/prisma';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -58,7 +56,7 @@ export async function POST(request: Request) {
     console.log("Sending prompt to OpenAI:", prompt);
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-3.5-turbo", // Changed from "gpt-4o-mini" to a valid model name
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
     });

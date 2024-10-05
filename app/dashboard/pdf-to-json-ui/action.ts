@@ -1,9 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/db/prisma';
 
 export async function analyzeAndSaveResearchPaper(text: string) {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
