@@ -12,14 +12,24 @@ export async function POST(request: Request) {
     const { paperId } = await request.json();
     console.log("Received paperId:", paperId);
 
-    const paper = await prisma.paper.findUnique({
-      where: { id: paperId },
-    });
+    let paper;
+    if (paperId) {
+      paper = await prisma.paper.findUnique({
+        where: { id: paperId },
+      });
+    } else {
+      // If no paperId is provided, select a random paper
+      const paperCount = await prisma.paper.count();
+      const skip = Math.floor(Math.random() * paperCount);
+      paper = await prisma.paper.findFirst({
+        skip: skip,
+      });
+    }
 
     console.log("Found paper:", paper ? "Yes" : "No");
 
     if (!paper) {
-      console.log("Paper not found for ID:", paperId);
+      console.log("Paper not found");
       return NextResponse.json({ error: 'Paper not found' }, { status: 404 });
     }
 
