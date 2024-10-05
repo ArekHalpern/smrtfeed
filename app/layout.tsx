@@ -17,8 +17,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "PaperPulse",
-  description: "PaperPulse",
+  title: "smrtfeed.",
+  description: "smrtfeed.",
 };
 
 export default function RootLayout({
