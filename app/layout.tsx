@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "../components/Header";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Sidebar, SidebarProvider } from "@/components/ui/sidebar";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -16,8 +17,8 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "smrtfeed",
-  description: "smrtfeed",
+  title: "PaperPulse",
+  description: "PaperPulse",
 };
 
 export default function RootLayout({
@@ -26,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning className="dark">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
@@ -36,10 +37,14 @@ export default function RootLayout({
           enableSystem={true}
           disableTransitionOnChange
         >
-          <div className="flex flex-col min-h-screen">
-            <Header />
-            <div className="flex-1 flex w-full">{children}</div>
-          </div>
+          <SidebarProvider>
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <div className="flex-1 flex w-full">
+                <Sidebar>{children}</Sidebar>
+              </div>
+            </div>
+          </SidebarProvider>
         </ThemeProvider>
       </body>
     </html>

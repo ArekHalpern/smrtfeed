@@ -1,19 +1,22 @@
-import { ThemeToggle } from "@/components/theme-toggle";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="grid grid-rows-[auto_1fr_auto] min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <header className="flex justify-end w-full">
-        <ThemeToggle />
+    <div className="flex flex-col items-center justify-between min-h-screen w-full p-8 sm:p-20">
+      <header className="w-full flex justify-end mb-16">
+        {/* Header content if needed */}
       </header>
-      <main className="flex flex-col items-center justify-center">
-        <h2 className="text-4xl font-bold mb-4">Hello World</h2>
-        <p className="text-lg text-center max-w-md">
-          Welcome to smrtfeed. Toggle the theme using the button in the top
-          right corner.
-        </p>
+      <main className="flex flex-col items-center justify-center flex-grow">
+        <h2 className="text-4xl font-bold mb-4">Organize Your Research</h2>
+        <p className="text-lg text-center max-w-md mb-8"></p>
+        <Link
+          href="/dashboard"
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 ease-in-out transform hover:scale-105"
+        >
+          Start Now For Free
+        </Link>
       </main>
-      <footer className="text-center text-sm text-gray-500 dark:text-gray-400">
+      <footer className="w-full text-center text-sm text-gray-500 dark:text-gray-400 mt-16">
         © 2024 smrtfeed. All rights reserved.
       </footer>
     </div>

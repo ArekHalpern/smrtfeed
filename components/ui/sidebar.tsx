@@ -4,7 +4,6 @@ import Link, { LinkProps } from "next/link";
 import React, { useState, createContext, useContext } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { IconMenu2, IconX } from "@tabler/icons-react";
-import { ThemeToggle } from "@/components/theme-toggle";
 
 interface Links {
   label: string;
@@ -41,6 +40,7 @@ export const SidebarProvider = ({
   setOpen?: React.Dispatch<React.SetStateAction<boolean>>;
   animate?: boolean;
 }) => {
+  // Start with the sidebar closed
   const [openState, setOpenState] = useState(false);
 
   const open = openProp !== undefined ? openProp : openState;
@@ -110,10 +110,6 @@ export const DesktopSidebar = ({
       >
         <div className="flex flex-col justify-between h-full w-full">
           <div>{children}</div>
-          <div className="flex mb-4">
-            <ThemeToggle />
-            {open}
-          </div>
         </div>
       </motion.div>
     </>
@@ -167,9 +163,6 @@ export const MobileSidebar = ({
                     <IconX />
                   </div>
                   {children}
-                </div>
-                <div className="flex mb-4">
-                  <ThemeToggle />
                 </div>
               </div>
             </motion.div>
