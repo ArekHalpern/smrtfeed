@@ -13,7 +13,8 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { getPapers } from "../actions";
 
 interface TweetComposerProps {
   onNewTweet: (tweet: string) => void;
@@ -24,6 +25,7 @@ interface TweetComposerProps {
 interface Paper {
   id: string;
   title: string;
+  datePublished: string; // Keep this as string
 }
 
 export function TweetComposer({
@@ -40,9 +42,18 @@ export function TweetComposer({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
-    fetch("/api/papers")
-      .then((res) => res.json())
-      .then((data) => setPapers(data))
+    getPapers()
+      .then((data) => {
+        console.log("Fetched papers:", data);
+        // Convert the datePublished to a string when setting the state
+        const formattedPapers = data.map((paper) => ({
+          ...paper,
+          datePublished: new Date(paper.datePublished)
+            .toISOString()
+            .split("T")[0], // Format as YYYY-MM-DD
+        }));
+        setPapers(formattedPapers);
+      })
       .catch((error) => console.error("Failed to fetch papers:", error));
   }, []);
 
@@ -102,21 +113,27 @@ export function TweetComposer({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
-            <ScrollArea className="mt-2 max-h-[300px] pr-4">
-              {filteredPapers.map((paper) => (
-                <Button
-                  key={paper.id}
-                  variant={
-                    selectedPapers.some((p) => p.id === paper.id)
-                      ? "secondary"
-                      : "outline"
-                  }
-                  className="w-full justify-start mb-2"
-                  onClick={() => handlePaperSelect(paper)}
-                >
-                  {paper.title}
-                </Button>
-              ))}
+            <ScrollArea className="mt-2 h-[300px] pr-4">
+              <div className="space-y-2">
+                {filteredPapers.map((paper) => (
+                  <div
+                    key={paper.id}
+                    className={`p-2 rounded-md transition-colors ${
+                      selectedPapers.some((p) => p.id === paper.id)
+                        ? "bg-primary/10"
+                        : "hover:bg-muted"
+                    }`}
+                    onClick={() => handlePaperSelect(paper)}
+                  >
+                    <h4 className="font-medium text-sm leading-snug mb-1">
+                      {paper.title}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Published: {paper.datePublished}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </ScrollArea>
             <DialogClose asChild>
               <Button className="mt-2">Close</Button>
@@ -144,18 +161,23 @@ export function TweetComposer({
           {selectedPapers.map((paper) => (
             <div
               key={paper.id}
-              className="flex items-center bg-muted p-1 rounded-md"
+              className="flex items-center bg-muted p-2 rounded-md max-w-full"
             >
-              <span className="text-xs md:text-sm truncate max-w-[150px]">
-                {paper.title}
-              </span>
+              <div className="flex-grow mr-2 min-w-0">
+                <p className="text-sm font-medium leading-snug truncate">
+                  {paper.title}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {paper.datePublished}
+                </p>
+              </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleClearSelection(paper.id)}
-                className="ml-1 h-5 w-5 p-0"
+                className="flex-shrink-0"
               >
-                <X className="h-3 w-3" />
+                <X className="h-4 w-4" />
               </Button>
             </div>
           ))}
