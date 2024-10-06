@@ -1,6 +1,6 @@
 # SmrtFeed: Research Paper Management and Analysis
 
-SmrtFeed is a powerful web application designed to help researchers and academics organize, analyze, and share insights from research papers. Built with Next.js, Supabase, and OpenAI, it offers a seamless experience for managing your academic literature.
+SmrtFeed is a powerful web application designed to help researchers and academics organize, analyze, and share insights from research papers. Built with Next.js, Vercel Postgres, Supabase Auth, Prisma ORM, and OpenAI, it offers a seamless experience for managing your academic literature.
 
 ## Features
 
@@ -28,33 +28,77 @@ SmrtFeed is a powerful web application designed to help researchers and academic
 - npm or yarn
 - Supabase account
 - OpenAI API key
+- Vercel account (for Vercel Postgres)
+- PostgreSQL database (for Prisma ORM)
 
 ### Installation
 
 1. Clone the repository:
+
    ```
    git clone https://github.com/yourusername/smrtfeed.git
    cd smrtfeed
    ```
+
 2. Install dependencies:
+
    ```
    npm install
    ```
-3. Set up environment variables:
-   Create a `.env.local` file in the root directory and add the following:
 
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-   OPENAI_API_KEY=your_openai_api_key
-   NEXT_PUBLIC_API_URL=your_api_url
+3. Install Vercel CLI and log in:
 
-4. Run the development server:
+   ```
+   npm install -g vercel@latest
+   vercel login
+   ```
+
+4. Link your project to Vercel:
+
+   ```
+   vercel link
+   ```
+
+5. Pull environment variables:
+
+   ```
+   vercel env pull .env.development.local
+   ```
+
+6. Install Vercel Postgres SDK:
+
+   ```
+   npm install @vercel/postgres
+   ```
+
+7. Set up Prisma:
+
+   ```
+   npx prisma generate
+   npx prisma db push
+   ```
+
+8. Run the development server:
 
    ```
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+9. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## Database Management
+
+This project uses Prisma ORM for database management and Vercel Postgres for data storage. To update your database schema:
+
+1. Modify the `prisma/schema.prisma` file
+2. Run `npx prisma generate` to update the Prisma client
+3. Run `npx prisma db push` to apply changes to your database
+
+To interact with your Vercel Postgres database, you can use the `@vercel/postgres` SDK in your code:
+
+## File Storage
+
+SmrtFeed uses Vercel Blob for file storage. Make sure you have set up a Vercel project and obtained the necessary credentials for Vercel Storage.
 
 ## Contributing
 
