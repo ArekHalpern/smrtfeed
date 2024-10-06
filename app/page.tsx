@@ -24,10 +24,7 @@ export default async function LandingPage() {
       ) : (
         <div className="space-x-4">
           <Button asChild size="lg">
-            <Link href="/login">Get Started</Link>
-          </Button>
-          <Button asChild variant="outline" size="lg">
-            <Link href="/login">Log In</Link>
+            <Link href="/login">Get Started For Free</Link>
           </Button>
         </div>
       )}
