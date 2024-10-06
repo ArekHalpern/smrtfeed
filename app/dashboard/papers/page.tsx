@@ -3,10 +3,9 @@
 import { useState, useEffect } from "react";
 import { PaperCard } from "./_components/PaperCard";
 import { PaperModal, ExtendedPaper } from "./_components/PaperModal";
-
 import { getPapers, updatePaper } from "./actions";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import { AddPaperModal } from "./_components/AddPaperModal";
 
 export default function PapersPage() {
@@ -15,10 +14,18 @@ export default function PapersPage() {
     null
   );
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchPapers = async () => {
-    const fetchedPapers = await getPapers();
-    setPapers(fetchedPapers as ExtendedPaper[]); // Type assertion here
+    setIsLoading(true);
+    try {
+      const fetchedPapers = await getPapers();
+      setPapers(fetchedPapers as ExtendedPaper[]);
+    } catch (error) {
+      console.error("Error fetching papers:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -59,15 +66,21 @@ export default function PapersPage() {
           <Plus className="mr-2 h-4 w-4" /> Add Paper
         </Button>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-        {papers.map((paper) => (
-          <PaperCard
-            key={paper.id}
-            paper={paper}
-            onClick={() => setSelectedPaper(paper)}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="flex justify-center items-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {papers.map((paper) => (
+            <PaperCard
+              key={paper.id}
+              paper={paper}
+              onClick={() => setSelectedPaper(paper)}
+            />
+          ))}
+        </div>
+      )}
       {selectedPaper && (
         <PaperModal
           paper={selectedPaper}
