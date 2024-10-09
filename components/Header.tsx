@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Home, FileText } from "lucide-react";
+import { User, Home, FileText, Scroll } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -71,6 +71,9 @@ export function Header() {
               </NavLink>
               <NavLink href="/dashboard/documents" icon={FileText}>
                 Docs
+              </NavLink>
+              <NavLink href="/dashboard/papers" icon={Scroll}>
+                Papers
               </NavLink>
             </nav>
           )}
