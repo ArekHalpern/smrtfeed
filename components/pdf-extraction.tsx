@@ -5,7 +5,7 @@ import { useDropzone } from "react-dropzone";
 import {
   getDocument,
   GlobalWorkerOptions,
-  PDFDocumentProxy,
+  // Remove PDFDocumentProxy as it's not used
   version,
 } from "pdfjs-dist";
 import { Upload } from "lucide-react";
@@ -14,41 +14,90 @@ import { Upload } from "lucide-react";
 GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
 
 interface PDFExtractionProps {
-  onExtract: (text: string) => void;
+  onExtract: (data: {
+    id: string;
+    source: string;
+    pages: Array<{
+      pageNumber: number;
+      sentences: Array<{
+        sentenceNumber: number;
+        content: string;
+      }>;
+    }>;
+  }) => void;
 }
 
 interface TextItem {
   str: string;
 }
 
-export function PDFExtraction({ onExtract }: PDFExtractionProps) {
+interface TextMarkedContent {
+  // Add properties that TextMarkedContent might have
+  type: string;
+  // Add other properties as needed
+}
+
+const PDFExtraction: React.FC<PDFExtractionProps> = ({ onExtract }) => {
+  const extractText = useCallback(
+    async (file: File) => {
+      try {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await getDocument(new Uint8Array(arrayBuffer)).promise;
+
+        const documentData = {
+          id: Date.now().toString(), // Use timestamp as a simple unique ID
+          source: file.name,
+          pages: [] as Array<{
+            pageNumber: number;
+            sentences: Array<{
+              sentenceNumber: number;
+              content: string;
+            }>;
+          }>,
+        };
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const pageText = textContent.items
+            .map((item: TextItem | TextMarkedContent) =>
+              "str" in item ? item.str : ""
+            )
+            .join(" ");
+
+          const pageData = {
+            pageNumber: i,
+            sentences: [] as Array<{ sentenceNumber: number; content: string }>,
+          };
+
+          // Split the page text into sentences
+          const sentences = pageText.match(/[^.!?]+[.!?]+/g) || [];
+          sentences.forEach((sentence, index) => {
+            pageData.sentences.push({
+              sentenceNumber: index + 1,
+              content: sentence.trim(),
+            });
+          });
+
+          documentData.pages.push(pageData);
+        }
+
+        onExtract(documentData);
+      } catch (error) {
+        console.error("Error extracting text from PDF:", error);
+      }
+    },
+    [onExtract]
+  );
+
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = async (e: ProgressEvent<FileReader>) => {
-          const typedarray = new Uint8Array(e.target?.result as ArrayBuffer);
-          try {
-            const pdf: PDFDocumentProxy = await getDocument(typedarray).promise;
-            let fullText = "";
-            for (let i = 1; i <= pdf.numPages; i++) {
-              const page = await pdf.getPage(i);
-              const textContent = await page.getTextContent();
-              const pageText = textContent.items
-                .map((item) => (item as TextItem).str)
-                .join(" ");
-              fullText += pageText + "\n";
-            }
-            onExtract(fullText.trim());
-          } catch (error) {
-            console.error("Error extracting text from PDF:", error);
-          }
-        };
-        reader.readAsArrayBuffer(file);
+        await extractText(file);
       }
     },
-    [onExtract]
+    [extractText]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -77,4 +126,6 @@ export function PDFExtraction({ onExtract }: PDFExtractionProps) {
       </div>
     </div>
   );
-}
+};
+
+export default PDFExtraction;

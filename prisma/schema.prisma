@@ -21,3 +21,35 @@ model Paper {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  source    String   @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+  pages     Page[]
+}
+
+model Page {
+  id         Int        @id @default(autoincrement())
+  documentId Int        @map("document_id")
+  pageNumber Int        @map("page_number")
+  document   Document   @relation(fields: [documentId], references: [id])
+  sentences  Sentence[]
+  Line       Line[]
+}
+
+model Sentence {
+  id             Int    @id @default(autoincrement())
+  pageId         Int    @map("page_id")
+  sentenceNumber Int    @map("sentence_number")
+  content        String @db.Text
+  page           Page   @relation(fields: [pageId], references: [id])
+}
+
+model Line {
+  id         Int    @id @default(autoincrement())
+  pageId     Int    @map("page_id")
+  lineNumber Int    @map("line_number")
+  content    String @db.Text
+  page       Page   @relation(fields: [pageId], references: [id])
+}
