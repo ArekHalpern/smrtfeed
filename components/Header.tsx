@@ -1,6 +1,6 @@
 "use client";
 
-import { User } from "lucide-react";
+import { User, Home, FileText } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,24 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { User as SupabaseUser } from "@supabase/supabase-js";
+
+const NavLink = ({
+  href,
+  icon: Icon,
+  children,
+}: {
+  href: string;
+  icon: typeof Home;
+  children: React.ReactNode;
+}) => (
+  <Link
+    href={href}
+    className="flex items-center space-x-1 text-sm text-foreground/80 hover:text-foreground transition-colors"
+  >
+    <Icon size={16} />
+    <span>{children}</span>
+  </Link>
+);
 
 export function Header() {
   const router = useRouter();
@@ -42,9 +60,21 @@ export function Header() {
   return (
     <header className="sticky top-0 z-10 bg-background border-b h-16">
       <div className="container flex items-center justify-between h-full px-4">
-        <Link href="/" className="text-xl font-bold">
-          smrtfeed.
-        </Link>
+        <div className="flex items-center space-x-6">
+          <Link href="/" className="text-xl font-bold">
+            smrtfeed.
+          </Link>
+          {user && (
+            <nav className="hidden md:flex space-x-4">
+              <NavLink href="/dashboard/feed" icon={Home}>
+                Home
+              </NavLink>
+              <NavLink href="/dashboard/documents" icon={FileText}>
+                Docs
+              </NavLink>
+            </nav>
+          )}
+        </div>
         <div className="flex items-center space-x-4">
           <ThemeToggle />
           {user ? (
