@@ -10,7 +10,7 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(`${CHUNKR_API_URL}s`, { // Note the 's' at the end to fetch all tasks
+    const response = await fetch(`${CHUNKR_API_URL}s`, {
       headers: {
         'Authorization': apiKey,
       },
@@ -24,6 +24,7 @@ export async function GET() {
     }
 
     const tasks = await response.json();
+    console.log('API response:', tasks);
     return NextResponse.json(tasks);
 
   } catch (error) {

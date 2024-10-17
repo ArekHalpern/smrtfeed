@@ -7,6 +7,9 @@ const nextConfig = {
   publicRuntimeConfig: {
     // Add public runtime config here if needed
   },
+  images: {
+    domains: ['chunkmydocs-bucket-prod.storage.googleapis.com'],
+  },
 };
 
 export default nextConfig;
