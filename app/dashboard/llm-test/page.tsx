@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import TextWithLLMEditor from "@/components/TextWithLLMEditor";
+import Highlight from "@/components/Highlight";
 
 const LLMTestPage: React.FC = () => {
   const [inlineText, setInlineText] = useState(
@@ -32,7 +31,7 @@ const LLMTestPage: React.FC = () => {
           <p className="mb-4 text-sm text-gray-600">
             Highlight any text and right-click to edit using AI assistance.
           </p>
-          <TextWithLLMEditor text={inlineText} onTextChange={setInlineText} />
+          <Highlight text={inlineText} onTextChange={setInlineText} />
         </CardContent>
       </Card>
     </div>
