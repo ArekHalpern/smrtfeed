@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import LLMEditor from "./LLMEditor";
 import { Button } from "@/components/ui/button";
-import { X, Check } from "lucide-react";
+import { X, Check, GripHorizontal } from "lucide-react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -10,6 +10,11 @@ import CodeBlock from "@tiptap/extension-code-block";
 import { common, createLowlight } from "lowlight";
 import json from "highlight.js/lib/languages/json";
 import { motion, AnimatePresence } from "framer-motion";
+import Bold from "@tiptap/extension-bold";
+import Italic from "@tiptap/extension-italic";
+import Underline from "@tiptap/extension-underline";
+import Draggable from "react-draggable";
+import Placeholder from "@tiptap/extension-placeholder";
 
 const lowlight = createLowlight(common);
 lowlight.register("json", json);
@@ -43,17 +48,42 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
   const [windowWidth, setWindowWidth] = useState(0);
 
   const editor = useEditor({
-    extensions: [StarterKit, CustomHighlight, CodeBlock],
+    extensions: [
+      StarterKit.configure({
+        codeBlock: false,
+        bold: false,
+        italic: false,
+      }),
+      CustomHighlight,
+      CodeBlock,
+      Bold,
+      Italic,
+      Underline,
+      Placeholder.configure({
+        placeholder: "Start typing here...",
+        showOnlyWhenEditable: true,
+      }),
+    ],
     content: initialContent,
     onUpdate: ({ editor }) => {
       onTextChange(editor.getHTML());
     },
     editorProps: {
       attributes: {
-        class: "prose max-w-none focus:outline-none",
+        class:
+          "prose max-w-none focus:outline-none min-h-screen w-full pt-24 pl-8",
       },
     },
+    immediatelyRender: false,
   });
+
+  const handleUnhighlight = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().unsetHighlight().run();
+      setShowLLMEditor(false);
+      setPendingSuggestion(null);
+    }
+  }, [editor]);
 
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -79,7 +109,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [editor]);
+  }, [editor, handleUnhighlight]);
 
   const handleTextSelection = useCallback(() => {
     if (editor) {
@@ -91,9 +121,9 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
         const containerNode = containerRef.current;
         if (containerNode) {
           const containerRect = containerNode.getBoundingClientRect();
-          const editorHeight = 120; // Approximate height of the editor
+          const editorHeight = 180; // Increased height to accommodate the formatting icons
           const editorWidth = 500; // Width of the editor
-          const topOffset = 30;
+          const topOffset = 10; // Reduced top offset
 
           let editorLeft = left - containerRect.left;
           if (editorLeft + editorWidth > windowWidth - 20) {
@@ -156,25 +186,50 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     setShowSuggestion(false);
   }, [editor]);
 
-  const handleUnhighlight = useCallback(() => {
-    if (editor) {
-      editor.chain().focus().unsetHighlight().run();
-      setShowLLMEditor(false);
-      setPendingSuggestion(null);
-    }
-  }, [editor]);
+  const draggableRef = useRef(null);
 
   return (
     <TooltipProvider>
-      <div className="relative" ref={containerRef}>
+      <div className="absolute inset-0" ref={containerRef}>
         <style jsx global>{`
           .custom-highlight {
             background-color: #e6f3ff;
           }
           .suggestion-highlight {
-            background-color: rgba(255, 165, 0, 0.2);
+            background-color: #e6f3ff; /* Light blue background for light mode */
+            border: 1px solid #3b82f6; /* Blue border */
+            border-radius: 4px;
             padding: 2px 4px;
-            border-radius: 2px;
+            margin: 0 2px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            color: #1f2937; /* Dark text for light mode */
+          }
+          .dark .suggestion-highlight {
+            background-color: #1e3a8a; /* Dark blue background for dark mode */
+            border-color: #60a5fa; /* Lighter blue border for dark mode */
+            color: #f3f4f6; /* Light text for dark mode */
+          }
+          .suggestion-overlay {
+            position: absolute;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            pointer-events: none; /* This prevents clicks on the overlay */
+          }
+          .suggestion-buttons {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            pointer-events: auto; /* This allows interaction with the buttons */
+          }
+          .suggestion-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
           pre {
             background-color: #f4f4f4;
@@ -185,57 +240,106 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
           code {
             font-family: "Courier New", Courier, monospace;
           }
+          .ProseMirror {
+            min-height: 100vh;
+            width: 100vw;
+          }
+          .ProseMirror p.is-editor-empty:first-child::before {
+            content: attr(data-placeholder);
+            float: left;
+            color: #adb5bd;
+            pointer-events: none;
+            height: 0;
+            font-style: italic;
+          }
+          .ProseMirror:focus {
+            outline: none;
+          }
+          .drag-handle {
+            cursor: move;
+            user-select: none;
+          }
+          .react-draggable {
+            position: absolute;
+            z-index: 1000;
+          }
+          .suggestion-overlay {
+            position: absolute;
+            z-index: 100;
+            pointer-events: none;
+          }
+          .suggestion-buttons {
+            display: inline-flex;
+            align-items: center;
+            margin-left: 4px;
+            vertical-align: middle;
+          }
         `}</style>
-        <div className="prose max-w-none whitespace-pre-wrap dark:text-white">
+        <div className="w-full h-full">
           <EditorContent editor={editor} onMouseUp={handleTextSelection} />
         </div>
         <AnimatePresence>
           {showLLMEditor && (
-            <motion.div
-              ref={editorRef}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
-              className="absolute shadow-lg w-[500px] rounded-lg overflow-visible backdrop-blur-md bg-white/30 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700"
-              style={{
-                top: `${editorPosition.top}px`,
-                left: `${editorPosition.left}px`,
-                zIndex: 1000,
-              }}
-            >
-              <div className="p-2">
-                <div className="flex justify-between items-center mb-2">
-                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                    Smrtfeed Editor
-                  </span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setShowLLMEditor(false);
-                      editor?.chain().focus().unsetHighlight().run();
-                    }}
-                    className="h-6 w-6 p-0 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+            <Draggable handle=".drag-handle" nodeRef={draggableRef}>
+              <motion.div
+                ref={draggableRef}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="react-draggable shadow-lg w-[500px] rounded-lg overflow-visible backdrop-blur-md bg-white/30 dark:bg-gray-800/30 border border-gray-200 dark:border-gray-700"
+                style={{
+                  top: `${editorPosition.top}px`,
+                  left: `${editorPosition.left}px`,
+                }}
+              >
+                <div className="p-2">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center drag-handle w-full">
+                      <GripHorizontal className="h-4 w-4 text-gray-500 mr-2" />
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                        Smrtfeed Editor
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowLLMEditor(false);
+                        editor?.chain().focus().unsetHighlight().run();
+                      }}
+                      className="h-6 w-6 p-0 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <LLMEditor
+                    onTextChange={handleLLMSuggestion}
+                    selectedText={selectedText}
+                    editor={editor}
+                  />
                 </div>
-                <LLMEditor
-                  onTextChange={handleLLMSuggestion}
-                  selectedText={selectedText}
-                />
-              </div>
-            </motion.div>
+              </motion.div>
+            </Draggable>
           )}
         </AnimatePresence>
         <AnimatePresence>
           {showSuggestion && pendingSuggestion && (
             <motion.div
-              initial={{ opacity: 0, filter: "blur(4px)" }}
-              animate={{ opacity: 1, filter: "blur(0px)" }}
-              exit={{ opacity: 0, filter: "blur(4px)" }}
-              transition={{ duration: 0.3 }}
-              className="relative inline-block bg-transparent"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+              className="suggestion-overlay"
+              style={{
+                top: `${
+                  (editor?.view.coordsAtPos(pendingSuggestion.range.end)
+                    ?.bottom ?? 0) + 5
+                }px`,
+                left: `${
+                  editor?.view.coordsAtPos(pendingSuggestion.range.start)
+                    ?.left ?? 0
+                }px`,
+              }}
             >
               <span className="suggestion-highlight">
                 {pendingSuggestion.text}
@@ -244,23 +348,21 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ delay: 0.2 }}
-                className="inline-flex ml-1 items-center"
+                transition={{ delay: 0.1 }}
+                className="suggestion-buttons"
               >
-                <Button
-                  size="sm"
+                <button
                   onClick={handleAcceptSuggestion}
-                  className="h-5 w-5 p-0 rounded-full bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700"
+                  className="suggestion-button"
                 >
-                  <Check className="h-3 w-3 text-green-500 dark:text-green-400" />
-                </Button>
-                <Button
-                  size="sm"
+                  <Check className="h-5 w-5 text-green-500 hover:text-green-600" />
+                </button>
+                <button
                   onClick={handleDeclineSuggestion}
-                  className="h-5 w-5 p-0 rounded-full bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 ml-1"
+                  className="suggestion-button ml-1"
                 >
-                  <X className="h-3 w-3 text-red-500 dark:text-red-400" />
-                </Button>
+                  <X className="h-5 w-5 text-red-500 hover:text-red-600" />
+                </button>
               </motion.span>
             </motion.div>
           )}

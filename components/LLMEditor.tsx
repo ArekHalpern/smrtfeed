@@ -11,6 +11,9 @@ import {
   Maximize,
   Palette,
   FileJson,
+  Bold,
+  Italic,
+  Underline,
 } from "lucide-react";
 import {
   Tooltip,
@@ -20,15 +23,18 @@ import {
 import prompts from "@/lib/prompts.json";
 import StructuredDataDisplay from "./StructuredDataDisplay";
 import ReactDOMServer from "react-dom/server";
+import { Editor } from "@tiptap/react";
 
 interface LLMEditorProps {
   onTextChange: (newText: string) => void;
   selectedText: string;
+  editor: Editor | null;
 }
 
 const LLMEditor: React.FC<LLMEditorProps> = ({
   onTextChange,
   selectedText,
+  editor,
 }) => {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -98,8 +104,45 @@ const LLMEditor: React.FC<LLMEditorProps> = ({
     },
   ];
 
+  const formattingIcons = [
+    {
+      icon: Bold,
+      tooltip: "Bold",
+      action: () => editor?.chain().focus().toggleBold().run(),
+    },
+    {
+      icon: Italic,
+      tooltip: "Italic",
+      action: () => editor?.chain().focus().toggleItalic().run(),
+    },
+    {
+      icon: Underline,
+      tooltip: "Underline",
+      action: () => editor?.chain().focus().toggleUnderline().run(),
+    },
+  ];
+
   return (
     <div className="space-y-2">
+      <div className="flex items-center space-x-2 mb-2 backdrop-blur-md bg-white/30 dark:bg-gray-800/30 rounded-md p-1 border border-gray-200 dark:border-gray-700">
+        {formattingIcons.map(({ icon: Icon, tooltip, action }, index) => (
+          <Tooltip key={index}>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={action}
+                className="p-1 h-7 w-7 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-sm"
+              >
+                <Icon className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" align="center" sideOffset={5}>
+              <p>{tooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
+      </div>
       <div className="flex items-center space-x-2 mb-2">
         <Input
           className="flex-grow text-sm"

@@ -66,7 +66,7 @@ export function Header() {
           </Link>
           {user && (
             <nav className="hidden md:flex space-x-4">
-              <NavLink href="/dashboard/feed" icon={Home}>
+              <NavLink href="/dashboard/write" icon={Home}>
                 Home
               </NavLink>
 
