@@ -1,32 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Highlight from "@/components/Highlight";
-import { getDocument, updateDocument } from "./actions";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 const LLMTestPage: React.FC = () => {
-  const [document, setDocument] = useState<{
-    id: number;
-    source: string;
-    content: string;
-  } | null>(null);
+  const [text, setText] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
-  useEffect(() => {
-    const fetchDocument = async () => {
-      const doc = await getDocument(4); // Fetch document with id 4
-      if (doc) {
-        setDocument(doc);
-      }
-    };
-    fetchDocument();
-  }, []);
+  const handleTextChange = (newText: string) => {
+    setText(newText);
+  };
 
-  const handleTextChange = async (newText: string) => {
-    if (document) {
-      const updatedDoc = await updateDocument(document.id, newText);
-      setDocument(updatedDoc);
-    }
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value);
   };
 
   return (
@@ -36,18 +25,27 @@ const LLMTestPage: React.FC = () => {
           <CardTitle>Smrtfeed Editor</CardTitle>
         </CardHeader>
         <CardContent>
-          {document ? (
+          {isEditing ? (
             <>
-              <p className="mb-4 text-sm text-gray-600">
-                Editing document: {document.source}
-              </p>
-              <Highlight
-                text={document.content}
-                onTextChange={handleTextChange}
+              <Textarea
+                value={text}
+                onChange={handleTextareaChange}
+                className="w-full h-64 mb-4"
+                placeholder="Paste or type your text here..."
               />
+              <Button onClick={() => setIsEditing(false)}>Done Editing</Button>
             </>
           ) : (
-            <p>Loading document...</p>
+            <>
+              <Button onClick={() => setIsEditing(true)} className="mb-4">
+                Edit Text
+              </Button>
+              {text ? (
+                <Highlight text={text} onTextChange={handleTextChange} />
+              ) : (
+                <p>No text to edit. Click &apos;Edit Text&apos; to add some.</p>
+              )}
+            </>
           )}
         </CardContent>
       </Card>
