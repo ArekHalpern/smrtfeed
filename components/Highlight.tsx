@@ -142,28 +142,28 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
               className="relative inline-block bg-transparent"
             >
               {suggestion}
-              <motion.div
+              <motion.span
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ delay: 0.2 }}
-                className="absolute bottom-0 right-0 flex space-x-1"
+                className="inline-flex ml-1 items-center"
               >
                 <Button
                   size="sm"
                   onClick={handleAcceptSuggestion}
                   className="h-5 w-5 p-0 rounded-full bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700"
                 >
-                  <Check className="h-3 w-3 text-gray-600 dark:text-gray-300" />
+                  <Check className="h-3 w-3 text-green-500 dark:text-green-400" />
                 </Button>
                 <Button
                   size="sm"
                   onClick={handleDeclineSuggestion}
-                  className="h-5 w-5 p-0 rounded-full bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700"
+                  className="h-5 w-5 p-0 rounded-full bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 ml-1"
                 >
-                  <X className="h-3 w-3 text-gray-600 dark:text-gray-300" />
+                  <X className="h-3 w-3 text-red-500 dark:text-red-400" />
                 </Button>
-              </motion.div>
+              </motion.span>
             </motion.span>
           ) : (
             <span className="bg-blue-200 bg-opacity-50 dark:bg-blue-700 dark:bg-opacity-50">
