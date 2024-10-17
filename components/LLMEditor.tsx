@@ -10,6 +10,7 @@ import {
   Minimize,
   Maximize,
   Palette,
+  FileJson,
 } from "lucide-react";
 import {
   Tooltip,
@@ -17,6 +18,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import prompts from "@/lib/prompts.json";
+import StructuredDataDisplay from "./StructuredDataDisplay";
+import ReactDOMServer from "react-dom/server";
 
 interface LLMEditorProps {
   onTextChange: (newText: string) => void;
@@ -55,6 +58,26 @@ const LLMEditor: React.FC<LLMEditorProps> = ({
     setPrompt("");
   };
 
+  const handleStructuredOutput = async () => {
+    if (!selectedText.trim()) return;
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/openai/structuredOutput", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: selectedText }),
+      });
+      const data = await response.json();
+      const structuredDataComponent = (
+        <StructuredDataDisplay data={data.structuredOutput} />
+      );
+      onTextChange(ReactDOMServer.renderToString(structuredDataComponent));
+    } catch (error) {
+      console.error("Error fetching structured output:", error);
+    }
+    setIsLoading(false);
+  };
+
   const promptIcons = [
     {
       icon: MessageSquare,
@@ -67,6 +90,11 @@ const LLMEditor: React.FC<LLMEditorProps> = ({
       icon: Palette,
       tooltip: "Change Adjectives",
       prompt: prompts.changeAdjectives,
+    },
+    {
+      icon: FileJson,
+      tooltip: "Convert to Structured JSON",
+      action: handleStructuredOutput,
     },
   ];
 
@@ -93,13 +121,15 @@ const LLMEditor: React.FC<LLMEditorProps> = ({
         </Button>
       </div>
       <div className="flex items-center backdrop-blur-md bg-white/30 dark:bg-gray-800/30 rounded-md p-1 border border-gray-200 dark:border-gray-700">
-        {promptIcons.map(({ icon: Icon, tooltip, prompt }, index) => (
+        {promptIcons.map(({ icon: Icon, tooltip, prompt, action }, index) => (
           <Tooltip key={index}>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => handleGetSuggestion(prompt)}
+                onClick={() =>
+                  action ? action() : handleGetSuggestion(prompt)
+                }
                 className="p-1 h-7 w-7 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-sm"
               >
                 <Icon className="h-4 w-4" />

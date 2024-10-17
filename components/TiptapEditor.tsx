@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import LLMEditor from "./LLMEditor";
 import { Button } from "@/components/ui/button";
 import { X, Check } from "lucide-react";
@@ -6,7 +6,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Highlight from "@tiptap/extension-highlight";
+import CodeBlock from "@tiptap/extension-code-block";
+import { common, createLowlight } from "lowlight";
+import json from "highlight.js/lib/languages/json";
 import { motion, AnimatePresence } from "framer-motion";
+
+const lowlight = createLowlight(common);
+lowlight.register("json", json);
 
 interface TiptapEditorProps {
   initialContent: string;
@@ -34,9 +40,10 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     text: string;
     range: { start: number; end: number };
   } | null>(null);
+  const [windowWidth, setWindowWidth] = useState(0);
 
   const editor = useEditor({
-    extensions: [StarterKit, CustomHighlight],
+    extensions: [StarterKit, CustomHighlight, CodeBlock],
     content: initialContent,
     onUpdate: ({ editor }) => {
       onTextChange(editor.getHTML());
@@ -47,6 +54,32 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
       },
     },
   });
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    handleResize();
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (!editor) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        editorRef.current &&
+        !editorRef.current.contains(event.target as Node) &&
+        !editor.view.dom.contains(event.target as Node)
+      ) {
+        handleUnhighlight();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [editor]);
 
   const handleTextSelection = useCallback(() => {
     if (editor) {
@@ -59,11 +92,17 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
         if (containerNode) {
           const containerRect = containerNode.getBoundingClientRect();
           const editorHeight = 120; // Approximate height of the editor
+          const editorWidth = 500; // Width of the editor
           const topOffset = 30;
+
+          let editorLeft = left - containerRect.left;
+          if (editorLeft + editorWidth > windowWidth - 20) {
+            editorLeft = windowWidth - editorWidth - 20;
+          }
 
           setEditorPosition({
             top: top - containerRect.top - editorHeight - topOffset,
-            left: left - containerRect.left,
+            left: editorLeft,
           });
         }
         setPendingSuggestion({ text, range: { start: from, end: to } });
@@ -74,7 +113,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
         editor.chain().focus().unsetHighlight().run();
       }
     }
-  }, [editor]);
+  }, [editor, windowWidth]);
 
   const handleLLMSuggestion = useCallback(
     (newText: string) => {
@@ -117,6 +156,14 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     setShowSuggestion(false);
   }, [editor]);
 
+  const handleUnhighlight = useCallback(() => {
+    if (editor) {
+      editor.chain().focus().unsetHighlight().run();
+      setShowLLMEditor(false);
+      setPendingSuggestion(null);
+    }
+  }, [editor]);
+
   return (
     <TooltipProvider>
       <div className="relative" ref={containerRef}>
@@ -125,14 +172,18 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
             background-color: #e6f3ff;
           }
           .suggestion-highlight {
-            background-color: rgba(
-              255,
-              165,
-              0,
-              0.2
-            ); /* Light orange with opacity */
+            background-color: rgba(255, 165, 0, 0.2);
             padding: 2px 4px;
             border-radius: 2px;
+          }
+          pre {
+            background-color: #f4f4f4;
+            padding: 1em;
+            border-radius: 4px;
+            overflow-x: auto;
+          }
+          code {
+            font-family: "Courier New", Courier, monospace;
           }
         `}</style>
         <div className="prose max-w-none whitespace-pre-wrap dark:text-white">
