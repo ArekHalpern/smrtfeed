@@ -1,23 +1,33 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Highlight from "@/components/Highlight";
+import { getDocument, updateDocument } from "./actions";
 
 const LLMTestPage: React.FC = () => {
-  const [inlineText, setInlineText] = useState(
-    `This is a sample text that you can edit using the AI-powered inline editor. 
-    Try highlighting any part of this text and then right-click to open the editor. 
-    You can make multiple edits to see how it works in context.
+  const [document, setDocument] = useState<{
+    id: number;
+    source: string;
+    content: string;
+  } | null>(null);
 
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor 
-    incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud 
-    exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+  useEffect(() => {
+    const fetchDocument = async () => {
+      const doc = await getDocument(4); // Fetch document with id 4
+      if (doc) {
+        setDocument(doc);
+      }
+    };
+    fetchDocument();
+  }, []);
 
-    Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu 
-    fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in 
-    culpa qui officia deserunt mollit anim id est laborum.`
-  );
+  const handleTextChange = async (newText: string) => {
+    if (document) {
+      const updatedDoc = await updateDocument(document.id, newText);
+      setDocument(updatedDoc);
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-8 mt-16">
@@ -26,10 +36,19 @@ const LLMTestPage: React.FC = () => {
           <CardTitle>Smrtfeed Editor</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="mb-4 text-sm text-gray-600">
-            Highlight any text to edit using AI assistance.
-          </p>
-          <Highlight text={inlineText} onTextChange={setInlineText} />
+          {document ? (
+            <>
+              <p className="mb-4 text-sm text-gray-600">
+                Editing document: {document.source}
+              </p>
+              <Highlight
+                text={document.content}
+                onTextChange={handleTextChange}
+              />
+            </>
+          ) : (
+            <p>Loading document...</p>
+          )}
         </CardContent>
       </Card>
     </div>
