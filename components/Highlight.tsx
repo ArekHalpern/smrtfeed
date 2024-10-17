@@ -22,24 +22,29 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
 
   const handleSelection = useCallback(() => {
     const selection = window.getSelection();
-    if (selection && selection.toString().trim().length > 0) {
+    if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const containerNode = containerRef.current;
       if (containerNode) {
-        const start = range.startOffset;
-        const end = range.endOffset;
-        const newSelectedText = selection.toString();
-        setSelectedText(newSelectedText);
-        setSelectionRange({ start, end });
+        const preSelectionRange = range.cloneRange();
+        preSelectionRange.selectNodeContents(containerNode);
+        preSelectionRange.setEnd(range.startContainer, range.startOffset);
+        const start = preSelectionRange.toString().length;
 
-        // Reset editor state when a new selection is made
-        setShowEditor(false);
-        setSuggestion("");
+        const newSelectedText = range.toString();
+        if (newSelectedText.trim().length > 0) {
+          setSelectedText(newSelectedText);
+          setSelectionRange({ start, end: start + newSelectedText.length });
+
+          // Reset editor state when a new selection is made
+          setShowEditor(false);
+          setSuggestion("");
+        } else {
+          // Reset selection if nothing is selected
+          setSelectedText("");
+          setSelectionRange(null);
+        }
       }
-    } else {
-      // Reset selection if nothing is selected
-      setSelectedText("");
-      setSelectionRange(null);
     }
   }, []);
 
