@@ -3,6 +3,7 @@ import LLMEditor from "./LLMEditor";
 import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface HighlightProps {
   text: string;
@@ -20,6 +21,7 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
     end: number;
   } | null>(null);
   const [selectedText, setSelectedText] = useState("");
+  const [showSuggestion, setShowSuggestion] = useState(false);
 
   const updateSelection = useCallback(() => {
     const selection = window.getSelection();
@@ -44,16 +46,17 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
           const selectionRect = range.getBoundingClientRect();
           const containerRect = containerNode.getBoundingClientRect();
           const editorHeight = 120; // Approximate height of the editor
+          const topOffset = 30;
 
-          const top = selectionRect.top - containerRect.top - editorHeight - 50; // Increased distance
+          const top =
+            selectionRect.top - containerRect.top - editorHeight - topOffset;
           const left = selectionRect.left - containerRect.left;
 
           setEditorPosition({ top, left });
           setShowEditor(true);
         } else {
-          setSelectionRange(null);
-          setSelectedText("");
-          setShowEditor(false);
+          // Clear selection if no text is selected
+          clearSelection();
         }
       }
     }
@@ -65,6 +68,8 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
 
   const handleSuggestion = useCallback((newText: string) => {
     setSuggestion(newText);
+    setShowSuggestion(true);
+    setShowEditor(false);
   }, []);
 
   const handleAcceptSuggestion = useCallback(() => {
@@ -75,40 +80,45 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
         text.substring(selectionRange.end);
       onTextChange(updatedText);
       setSuggestion("");
-      setShowEditor(false);
+      setShowSuggestion(false);
       setSelectionRange(null);
+      setSelectedText("");
     }
   }, [selectionRange, suggestion, onTextChange, text]);
 
   const handleDeclineSuggestion = useCallback(() => {
     setSuggestion("");
+    setShowSuggestion(false);
   }, []);
 
   const handleCloseEditor = useCallback(() => {
     setShowEditor(false);
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setSelectionRange(null);
+    setSelectedText("");
+    setShowEditor(false);
     setSuggestion("");
+    setShowSuggestion(false);
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
-        editorRef.current &&
-        !editorRef.current.contains(event.target as Node) &&
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        handleCloseEditor();
+        clearSelection();
       }
     };
 
-    if (showEditor) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [handleCloseEditor, showEditor]);
+  }, [clearSelection]);
 
   const renderHighlightedText = () => {
     if (!selectionRange) return text;
@@ -121,9 +131,46 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
     return (
       <>
         {before}
-        <span className="bg-blue-200 bg-opacity-50 dark:bg-blue-700 dark:bg-opacity-50">
-          {highlighted}
-        </span>
+        <AnimatePresence mode="wait">
+          {showSuggestion ? (
+            <motion.span
+              key="suggestion"
+              initial={{ opacity: 0, filter: "blur(4px)" }}
+              animate={{ opacity: 1, filter: "blur(0px)" }}
+              exit={{ opacity: 0, filter: "blur(4px)" }}
+              transition={{ duration: 0.3 }}
+              className="relative inline-block bg-transparent"
+            >
+              {suggestion}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: 0.2 }}
+                className="absolute bottom-0 right-0 flex space-x-1"
+              >
+                <Button
+                  size="sm"
+                  onClick={handleAcceptSuggestion}
+                  className="h-5 w-5 p-0 rounded-full bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  <Check className="h-3 w-3 text-gray-600 dark:text-gray-300" />
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleDeclineSuggestion}
+                  className="h-5 w-5 p-0 rounded-full bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700"
+                >
+                  <X className="h-3 w-3 text-gray-600 dark:text-gray-300" />
+                </Button>
+              </motion.div>
+            </motion.span>
+          ) : (
+            <span className="bg-blue-200 bg-opacity-50 dark:bg-blue-700 dark:bg-opacity-50">
+              {highlighted}
+            </span>
+          )}
+        </AnimatePresence>
         {after}
       </>
     );
@@ -169,38 +216,6 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
             </div>
           </div>
         </TooltipProvider>
-      )}
-      {suggestion && (
-        <div className="mt-4 w-full backdrop-blur-md bg-white/30 dark:bg-gray-800/30 rounded-lg overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
-          <div className="p-3">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
-                AI Suggestion
-              </span>
-              <div className="flex space-x-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDeclineSuggestion}
-                  className="h-6 w-6 p-0 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleAcceptSuggestion}
-                  className="h-6 w-6 p-0 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900 rounded-full"
-                >
-                  <Check className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-            <p className="text-sm text-gray-700 dark:text-gray-300">
-              {suggestion}
-            </p>
-          </div>
-        </div>
       )}
     </div>
   );

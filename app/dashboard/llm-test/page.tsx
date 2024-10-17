@@ -20,14 +20,14 @@ const LLMTestPage: React.FC = () => {
   );
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <Card>
+    <div className="container mx-auto p-6 space-y-8 mt-16">
+      <Card className="overflow-visible">
         <CardHeader>
-          <CardTitle></CardTitle>
+          <CardTitle>Smrtfeed Editor</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="mb-4 text-sm text-gray-600">
-            Highlight any text and right-click to edit using AI assistance.
+            Highlight any text to edit using AI assistance.
           </p>
           <Highlight text={inlineText} onTextChange={setInlineText} />
         </CardContent>
