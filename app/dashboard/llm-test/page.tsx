@@ -21,11 +21,9 @@ const LLMTestPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold mb-6">AI-Powered Inline Text Editor</h1>
-
       <Card>
         <CardHeader>
-          <CardTitle>Editable Text</CardTitle>
+          <CardTitle></CardTitle>
         </CardHeader>
         <CardContent>
           <p className="mb-4 text-sm text-gray-600">
