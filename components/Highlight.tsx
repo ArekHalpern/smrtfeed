@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import LLMEditor from "./LLMEditor";
-import { X } from "lucide-react";
+import { X, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HighlightProps {
@@ -10,22 +9,25 @@ interface HighlightProps {
 }
 
 const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
-  const [selectedText, setSelectedText] = useState("");
   const [showEditor, setShowEditor] = useState(false);
-  const [editorPosition, setEditorPosition] = useState({ x: 0, y: 0 });
+  const [editorPosition, setEditorPosition] = useState({ top: 0, left: 0 });
   const [suggestion, setSuggestion] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<HTMLDivElement>(null);
   const [selectionRange, setSelectionRange] = useState<{
     start: number;
     end: number;
   } | null>(null);
 
-  const handleSelection = useCallback(() => {
+  const updateSelection = useCallback(() => {
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
       const range = selection.getRangeAt(0);
       const containerNode = containerRef.current;
-      if (containerNode) {
+      if (
+        containerNode &&
+        containerNode.contains(range.commonAncestorContainer)
+      ) {
         const preSelectionRange = range.cloneRange();
         preSelectionRange.selectNodeContents(containerNode);
         preSelectionRange.setEnd(range.startContainer, range.startOffset);
@@ -33,37 +35,33 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
 
         const newSelectedText = range.toString();
         if (newSelectedText.trim().length > 0) {
-          setSelectedText(newSelectedText);
           setSelectionRange({ start, end: start + newSelectedText.length });
 
-          // Reset editor state when a new selection is made
-          setShowEditor(false);
-          setSuggestion("");
+          // Calculate editor position
+          const selectionRect = range.getBoundingClientRect();
+          const containerRect = containerNode.getBoundingClientRect();
+
+          const editorHeight = 100; // Approximate height of the editor
+          const topPosition =
+            selectionRect.top - containerRect.top - editorHeight - 10; // 10px gap
+
+          setEditorPosition({
+            top: Math.max(0, topPosition), // Ensure it doesn't go above the container
+            left: selectionRect.left - containerRect.left,
+          });
+
+          setShowEditor(true);
         } else {
-          // Reset selection if nothing is selected
-          setSelectedText("");
           setSelectionRange(null);
+          setShowEditor(false);
         }
       }
     }
   }, []);
 
-  const handleContextMenu = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault();
-      if (selectedText) {
-        const rect = containerRef.current?.getBoundingClientRect();
-        if (rect) {
-          setEditorPosition({
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top - 40,
-          });
-        }
-        setShowEditor(true);
-      }
-    },
-    [selectedText]
-  );
+  const handleMouseUp = useCallback(() => {
+    updateSelection();
+  }, [updateSelection]);
 
   const handleSuggestion = useCallback((newText: string) => {
     setSuggestion(newText);
@@ -79,7 +77,6 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
       setSuggestion("");
       setShowEditor(false);
       setSelectionRange(null);
-      setSelectedText("");
     }
   }, [selectionRange, suggestion, onTextChange, text]);
 
@@ -90,13 +87,13 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
   const handleCloseEditor = useCallback(() => {
     setShowEditor(false);
     setSuggestion("");
-    setSelectionRange(null);
-    setSelectedText("");
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
+        editorRef.current &&
+        !editorRef.current.contains(event.target as Node) &&
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
@@ -104,11 +101,14 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    if (showEditor) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [handleCloseEditor]);
+  }, [handleCloseEditor, showEditor]);
 
   const renderHighlightedText = () => {
     if (!selectionRange) return text;
@@ -132,23 +132,24 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
   return (
     <div className="relative" ref={containerRef}>
       <div
-        onMouseUp={handleSelection}
-        onContextMenu={handleContextMenu}
+        onMouseUp={handleMouseUp}
         className="prose max-w-none whitespace-pre-wrap dark:text-white"
       >
         {renderHighlightedText()}
       </div>
       {showEditor && (
-        <Card
-          className="absolute shadow-lg w-[300px]"
+        <div
+          ref={editorRef}
+          className="absolute shadow-lg w-[300px] bg-white dark:bg-gray-800 rounded-lg overflow-hidden"
           style={{
-            top: `${editorPosition.y}px`,
-            left: `${editorPosition.x}px`,
+            top: `${editorPosition.top}px`,
+            left: `${editorPosition.left}px`,
             zIndex: 1000,
           }}
         >
-          <CardContent className="p-3">
-            <div className="flex justify-end mb-2">
+          <div className="p-2">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium">Smrtfeed Editor</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -159,28 +160,36 @@ const Highlight: React.FC<HighlightProps> = ({ text, onTextChange }) => {
               </Button>
             </div>
             <LLMEditor onTextChange={handleSuggestion} />
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
       {suggestion && (
-        <Card className="mt-4 w-full">
-          <CardContent className="p-4">
-            <h3 className="text-lg font-semibold mb-2">AI Suggestion:</h3>
-            <p className="mb-4 text-sm">{suggestion}</p>
-            <div className="flex justify-end space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDeclineSuggestion}
-              >
-                Decline
-              </Button>
-              <Button size="sm" onClick={handleAcceptSuggestion}>
-                Accept
-              </Button>
+        <div className="mt-4 w-full bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-md">
+          <div className="p-3">
+            <div className="flex justify-between items-center mb-2">
+              <span className="text-sm font-medium">AI Suggestion</span>
+              <div className="flex space-x-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDeclineSuggestion}
+                  className="h-6 w-6 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAcceptSuggestion}
+                  className="h-6 w-6 p-0"
+                >
+                  <Check className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+            <p className="text-sm">{suggestion}</p>
+          </div>
+        </div>
       )}
     </div>
   );

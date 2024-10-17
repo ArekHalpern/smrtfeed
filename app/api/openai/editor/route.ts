@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const { text, prompt } = await req.json();
 
     const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       messages: [
         { role: "system", content: "You are a helpful assistant that provides text editing suggestions." },
         { role: "user", content: `Original text: "${text}"\n\nEdit request: ${prompt}\n\nProvide an edited version of the text based on the edit request.` }

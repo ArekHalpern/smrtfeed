@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Edit } from "lucide-react";
+import { Loader2, Send } from "lucide-react";
 
 interface LLMEditorProps {
   onTextChange: (newText: string) => void;
@@ -18,9 +18,10 @@ const LLMEditor: React.FC<LLMEditorProps> = ({ onTextChange }) => {
   };
 
   const handleGetSuggestion = async () => {
+    if (!prompt.trim()) return;
     setIsLoading(true);
     try {
-      const response = await fetch("/api/openai", {
+      const response = await fetch("/api/openai/editor", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt }),
@@ -31,26 +32,27 @@ const LLMEditor: React.FC<LLMEditorProps> = ({ onTextChange }) => {
       console.error("Error fetching suggestion:", error);
     }
     setIsLoading(false);
+    setPrompt("");
   };
 
   return (
-    <div className="relative">
+    <div className="flex items-center space-x-2">
       <Input
-        className="w-full text-sm pr-10"
-        placeholder="Editing instructions..."
+        className="flex-grow text-sm"
+        placeholder="Edit instructions..."
         value={prompt}
         onChange={handlePromptChange}
       />
       <Button
         onClick={handleGetSuggestion}
-        disabled={isLoading}
-        className="absolute bottom-0 right-0 p-1 h-8 w-8"
+        disabled={isLoading || !prompt.trim()}
+        className="p-1 h-8 w-8"
         size="sm"
       >
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin" />
         ) : (
-          <Edit className="h-4 w-4" />
+          <Send className="h-4 w-4" />
         )}
       </Button>
     </div>
