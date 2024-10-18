@@ -19,7 +19,7 @@ export default async function LandingPage() {
       </p>
       {user ? (
         <Button asChild size="lg">
-          <Link href="/dashboard/feed">Go to Dashboard</Link>
+          <Link href="/dashboard/write">Go to Dashboard</Link>
         </Button>
       ) : (
         <div className="space-x-4">
