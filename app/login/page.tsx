@@ -25,7 +25,7 @@ export default function LoginPage() {
     const success = urlParams.get("success");
     if (success === "true") {
       // If successful, navigate to the dashboard
-      router.push("/dashboard/feed");
+      router.push("/dashboard/write");
     }
   }, [router]);
 
