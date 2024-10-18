@@ -6,11 +6,10 @@ import TiptapEditor from "@/components/TiptapEditor";
 const LLMTestPage: React.FC = () => {
   const handleTextChange = (newText: string) => {
     console.log("Text changed:", newText);
-    // You can add any additional logic here if needed
   };
 
   return (
-    <div className="w-screen h-screen overflow-hidden">
+    <div className="w-full h-full">
       <TiptapEditor initialContent="" onTextChange={handleTextChange} />
     </div>
   );
