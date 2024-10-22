@@ -1,93 +1,115 @@
 "use client";
 
-import { TweetComposer } from "./TweetComposer";
-import { Tweet } from "./Tweet";
 import { useState, useCallback } from "react";
-import { usePullToRefresh } from "@/app/hooks/usePullToRefresh";
+import { Button } from "@/components/ui/button";
+import { Loader2, Sparkles } from "lucide-react";
 import { generateTweet, getRandomPaperId } from "../actions";
-import { Loader2 } from "lucide-react";
+import { InsightCard } from "./InsightCard";
+import { motion, AnimatePresence } from "framer-motion";
 
-// Define the Tweet type
-interface TweetType {
-  id: number;
-  username: string;
-  handle: string;
-  content: string;
-  timestamp: string;
+interface Insight {
+  id: string;
+  title: string;
+  datePublished: string;
+  content: {
+    summary: string;
+    keyInsights: string[];
+  };
+  authors: string;
+  url: string;
 }
 
 export function MainFeed() {
-  const [tweets, setTweets] = useState<TweetType[]>([]);
+  const [insights, setInsights] = useState<Insight[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleNewTweet = useCallback(
-    (content: string) => {
-      const newTweet: TweetType = {
-        id: tweets.length + 1,
-        username: "AI Assistant",
-        handle: "@ai_assistant",
-        content,
-        timestamp: "Just now",
-      };
-      setTweets((prevTweets) => [newTweet, ...prevTweets]);
-    },
-    [tweets]
-  );
-
-  const handleGenerateTweet = useCallback(
-    async (paperIds: string[]) => {
-      setIsGenerating(true);
-      try {
-        if (paperIds.length === 0) {
-          const randomPaperId = await getRandomPaperId();
-          if (!randomPaperId) {
-            throw new Error("No papers available for selection.");
-          }
-          paperIds = [randomPaperId];
-        }
-        for (const paperId of paperIds) {
-          const generatedTweet = await generateTweet(paperId);
-          handleNewTweet(generatedTweet);
-        }
-      } catch (error) {
-        console.error("Failed to generate tweet:", error);
-      } finally {
-        setIsGenerating(false);
+  const handleGenerateInsight = useCallback(async () => {
+    setIsGenerating(true);
+    try {
+      const randomPaperId = await getRandomPaperId();
+      if (!randomPaperId) {
+        throw new Error("No papers available for selection.");
       }
-    },
-    [handleNewTweet]
-  );
+      const generatedInsight = await generateTweet(randomPaperId);
 
-  const refreshing = usePullToRefresh(() => handleGenerateTweet([]));
+      // Parse the generated content
+      const titleMatch = generatedInsight.match(/"([^"]+)"/);
+      const dateMatch = generatedInsight.match(
+        /Published: (\d{4}-\d{2}-\d{2})/
+      );
+      const summaryMatch = generatedInsight.match(
+        /Overview:\n([\s\S]*?)\n\nKey Insights:/
+      );
+      const keyInsightsMatch = generatedInsight.match(
+        /Key Insights:\n([\s\S]*?)\n\nAuthors:/
+      );
+      const authorsMatch = generatedInsight.match(/Authors: (.+)/);
+      const urlMatch = generatedInsight.match(/URL: (https?:\/\/[^\s]+)/);
 
-  const handleRefreshInsights = useCallback(async (tweetId: number) => {
-    // Implement the refresh insights functionality here
-    console.log(`Refreshing insights for tweet ${tweetId}`);
-    // You can add the actual implementation later
+      const newInsight: Insight = {
+        id: randomPaperId,
+        title: titleMatch ? titleMatch[1] : "Untitled",
+        datePublished: dateMatch ? dateMatch[1] : "Unknown date",
+        content: {
+          summary: summaryMatch ? summaryMatch[1].trim() : "",
+          keyInsights: keyInsightsMatch
+            ? keyInsightsMatch[1]
+                .split("\n")
+                .map((insight) => insight.replace(/^\d+\.\s*/, "").trim())
+                .filter((insight) => insight !== "")
+            : [],
+        },
+        authors: authorsMatch ? authorsMatch[1] : "",
+        url: urlMatch ? urlMatch[1] : "",
+      };
+
+      setInsights((prevInsights) => [newInsight, ...prevInsights]);
+    } catch (error) {
+      console.error("Failed to generate insight:", error);
+    } finally {
+      setIsGenerating(false);
+    }
   }, []);
 
   return (
-    <div className="space-y-4">
-      {refreshing && (
-        <div className="flex justify-center items-center py-4">
-          <Loader2 className="h-6 w-6 animate-spin" />
-          <span className="ml-2">Generating new insight...</span>
-        </div>
-      )}
-      <TweetComposer
-        onNewTweet={handleNewTweet}
-        onGenerate={handleGenerateTweet}
-        isGenerating={isGenerating}
-      />
-      <div className="space-y-3 md:space-y-4">
-        {tweets.map((tweet) => (
-          <Tweet
-            key={tweet.id}
-            {...tweet}
-            onRefreshInsights={handleRefreshInsights}
-          />
-        ))}
+    <div className="space-y-8">
+      <div className="flex justify-center">
+        <Button
+          onClick={handleGenerateInsight}
+          disabled={isGenerating}
+          size="lg"
+          className="px-6 py-3 text-lg font-semibold rounded-full shadow-lg transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+        >
+          {isGenerating ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            <>
+              <Sparkles className="mr-2 h-5 w-5" />
+              Generate New Insight
+            </>
+          )}
+        </Button>
       </div>
+      <AnimatePresence>
+        {insights.map((insight, index) => (
+          <motion.div
+            key={insight.id}
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -50 }}
+            transition={{
+              duration: 0.8,
+              delay: index * 0.2,
+              ease: [0.6, -0.05, 0.01, 0.99],
+            }}
+          >
+            <InsightCard insight={insight} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </div>
   );
 }

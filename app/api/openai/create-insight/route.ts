@@ -45,11 +45,9 @@ export async function POST(request: Request) {
     Authors: ${JSON.stringify(paper.authors)}
     Keywords: ${paper.keywords.join(', ')}
     Key Insights: ${JSON.stringify(paper.key_insights)}
-    Conclusion: ${paper.conclusion || 'N/A'}
     
     Please provide a summary in the following JSON format:
     {
-    
       "summary": "A concise summary of the paper (max 50 words)",
       "keyInsights": [
         "Key insight 1",
@@ -57,8 +55,7 @@ export async function POST(request: Request) {
         "Key insight 3",
         "Key insight 4",
         "Key insight 5"
-      ],
-      "conclusion": "A brief conclusion (max 50 words)"
+      ]
     }
 
     Ensure that the output is valid JSON and can be parsed directly. Do not include any markdown formatting or code blocks.`;
