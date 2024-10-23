@@ -35,7 +35,7 @@ export async function generateTweet(paperId: string) {
   try {
     const paper = await prisma.paper.findUnique({
       where: { id: paperId },
-      select: { id: true, title: true, datePublished: true, url: true, authors: true }
+      select: { id: true, title: true, datePublished: true, url: true, authors: true, key_insights: true }
     });
 
     if (!paper) {
@@ -84,9 +84,6 @@ ${data.content.summary}
 
 Key Insights:
 ${data.content.keyInsights.map((insight: string, index: number) => `${index + 1}. ${insight}`).join('\n')}
-
-Conclusion:
-${data.content.conclusion}
 
 Authors: ${authors}
 
@@ -139,6 +136,51 @@ export async function refreshInsights(paperId: string) {
     return refreshedTweet;
   } catch (error) {
     console.error("Error refreshing insights:", error);
+    throw error;
+  }
+}
+
+export async function getPaperInsight(paperId: string) {
+  try {
+    const paper = await prisma.paper.findUnique({
+      where: { id: paperId },
+      select: {
+        id: true,
+        title: true,
+        datePublished: true,
+        url: true,
+        authors: true,
+        conclusion: true,
+        key_insights: true,
+      }
+    });
+
+    if (!paper) {
+      throw new Error("Paper not found");
+    }
+
+    const authors = (paper.authors as { name: string }[]).map(author => author.name).join(", ");
+    const keyInsights = Array.isArray(paper.key_insights)
+      ? paper.key_insights
+          .filter((insight): insight is { description: string } => 
+            typeof insight === 'object' && insight !== null && 'description' in insight)
+          .map(insight => insight.description)
+          .slice(0, 5)
+      : [];
+
+    return {
+      id: paper.id,
+      title: paper.title,
+      datePublished: paper.datePublished.toISOString().split('T')[0],
+      content: {
+        summary: paper.conclusion || "No summary available.",
+        keyInsights: keyInsights,
+      },
+      authors: authors,
+      url: paper.url || "",
+    };
+  } catch (error) {
+    console.error("Error fetching paper insight:", error);
     throw error;
   }
 }

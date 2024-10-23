@@ -12,21 +12,9 @@ export async function POST(request: Request) {
     const { paperId } = await request.json();
     console.log("Received paperId:", paperId);
 
-    let paper;
-    if (paperId) {
-      paper = await prisma.paper.findUnique({
-        where: { id: paperId },
-      });
-    } else {
-      // If no paperId is provided, select a random paper
-      const paperCount = await prisma.paper.count();
-      const skip = Math.floor(Math.random() * paperCount);
-      paper = await prisma.paper.findFirst({
-        skip: skip,
-      });
-    }
-
-    console.log("Found paper:", paper ? "Yes" : "No");
+    const paper = await prisma.paper.findUnique({
+      where: { id: paperId },
+    });
 
     if (!paper) {
       console.log("Paper not found");
@@ -38,24 +26,17 @@ export async function POST(request: Request) {
       authors: paper.authors,
       keywords: paper.keywords,
       key_insights: paper.key_insights,
-      conclusion: paper.conclusion,
     });
 
-    const prompt = `You are tasked with generating a summarization about the following research paper:
+    const prompt = `You are tasked with generating a concise summary about the following research paper:
+    Title: ${paper.title}
     Authors: ${JSON.stringify(paper.authors)}
-    Keywords: ${paper.keywords.join(', ')}
+    Keywords: ${paper.keywords?.join(', ') || 'N/A'}
     Key Insights: ${JSON.stringify(paper.key_insights)}
     
     Please provide a summary in the following JSON format:
     {
-      "summary": "A concise summary of the paper (max 50 words)",
-      "keyInsights": [
-        "Key insight 1",
-        "Key insight 2",
-        "Key insight 3",
-        "Key insight 4",
-        "Key insight 5"
-      ]
+      "summary": "A concise summary of the paper (max 50 words)"
     }
 
     Ensure that the output is valid JSON and can be parsed directly. Do not include any markdown formatting or code blocks.`;
@@ -63,7 +44,7 @@ export async function POST(request: Request) {
     console.log("Sending prompt to OpenAI:", prompt);
 
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // Changed from "gpt-4o-mini" to a valid model name
+      model: "gpt-3.5-turbo",
       messages: [{ role: "user", content: prompt }],
       temperature: 0.7,
     });
@@ -80,7 +61,19 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to parse generated content', details: generatedContent }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true, content: parsedContent });
+    // Combine the generated summary with the existing key insights
+    const result = {
+      summary: parsedContent.summary,
+      keyInsights: Array.isArray(paper.key_insights)
+        ? paper.key_insights
+            .filter((insight): insight is { description: string } => 
+              typeof insight === 'object' && insight !== null && 'description' in insight)
+            .map(insight => insight.description)
+            .slice(0, 5)
+        : []
+    };
+
+    return NextResponse.json({ success: true, content: result });
   } catch (error) {
     console.error('Error generating content:', error);
     if (error instanceof Error) {

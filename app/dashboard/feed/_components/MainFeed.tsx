@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, Sparkles } from "lucide-react";
-import { generateTweet, getRandomPaperId } from "../actions";
+import { getPaperInsight, getRandomPaperId } from "../actions";
 import { InsightCard } from "./InsightCard";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -30,39 +30,7 @@ export function MainFeed() {
       if (!randomPaperId) {
         throw new Error("No papers available for selection.");
       }
-      const generatedInsight = await generateTweet(randomPaperId);
-
-      // Parse the generated content
-      const titleMatch = generatedInsight.match(/"([^"]+)"/);
-      const dateMatch = generatedInsight.match(
-        /Published: (\d{4}-\d{2}-\d{2})/
-      );
-      const summaryMatch = generatedInsight.match(
-        /Overview:\n([\s\S]*?)\n\nKey Insights:/
-      );
-      const keyInsightsMatch = generatedInsight.match(
-        /Key Insights:\n([\s\S]*?)\n\nAuthors:/
-      );
-      const authorsMatch = generatedInsight.match(/Authors: (.+)/);
-      const urlMatch = generatedInsight.match(/URL: (https?:\/\/[^\s]+)/);
-
-      const newInsight: Insight = {
-        id: randomPaperId,
-        title: titleMatch ? titleMatch[1] : "Untitled",
-        datePublished: dateMatch ? dateMatch[1] : "Unknown date",
-        content: {
-          summary: summaryMatch ? summaryMatch[1].trim() : "",
-          keyInsights: keyInsightsMatch
-            ? keyInsightsMatch[1]
-                .split("\n")
-                .map((insight) => insight.replace(/^\d+\.\s*/, "").trim())
-                .filter((insight) => insight !== "")
-            : [],
-        },
-        authors: authorsMatch ? authorsMatch[1] : "",
-        url: urlMatch ? urlMatch[1] : "",
-      };
-
+      const newInsight = await getPaperInsight(randomPaperId);
       setInsights((prevInsights) => [newInsight, ...prevInsights]);
     } catch (error) {
       console.error("Failed to generate insight:", error);
@@ -73,7 +41,7 @@ export function MainFeed() {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-center">
+      <div className="flex justify-center mb-8">
         <Button
           onClick={handleGenerateInsight}
           disabled={isGenerating}
@@ -93,23 +61,26 @@ export function MainFeed() {
           )}
         </Button>
       </div>
-      <AnimatePresence>
-        {insights.map((insight, index) => (
-          <motion.div
-            key={insight.id}
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -50 }}
-            transition={{
-              duration: 0.8,
-              delay: index * 0.2,
-              ease: [0.6, -0.05, 0.01, 0.99],
-            }}
-          >
-            <InsightCard insight={insight} />
-          </motion.div>
-        ))}
-      </AnimatePresence>
+      <motion.div initial={false} className="space-y-8">
+        <AnimatePresence initial={false}>
+          {insights.map((insight) => (
+            <motion.div
+              key={insight.id}
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: "auto", marginBottom: 32 }}
+              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 500,
+                damping: 50,
+                mass: 1,
+              }}
+            >
+              <InsightCard insight={insight} />
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }
