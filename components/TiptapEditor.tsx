@@ -9,12 +9,21 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { createPortal } from "react-dom";
 import { CustomHighlight } from "./Highlight";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import EditorHeader from "./EditorHeader";
 
 const highlightStyles = `
   .custom-highlight {
     background-color: rgba(173, 216, 230, 0.3);
     border-radius: 2px;
     padding: 2px 0;
+  }
+
+  .ProseMirror p.is-editor-empty:first-child::before {
+    color: #adb5bd;
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
   }
 `;
 
@@ -55,7 +64,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
       CodeBlock,
       Placeholder.configure({
         placeholder: "Start writing here...",
-        showOnlyWhenEditable: true,
+        emptyEditorClass: "is-editor-empty",
       }),
     ],
     content: initialContent,
@@ -65,7 +74,7 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none w-full",
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl focus:outline-none w-full min-h-[200px]",
       },
     },
   }) as EditorWithCustomHighlight | null;
@@ -172,13 +181,36 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     }
   }, [showLLMEditor]);
 
+  const handleUndo = useCallback(() => {
+    editor?.chain().focus().undo().run();
+  }, [editor]);
+
+  const handleRedo = useCallback(() => {
+    editor?.chain().focus().redo().run();
+  }, [editor]);
+
+  const handleRefresh = useCallback(() => {
+    if (editor) {
+      // Remove all custom highlights
+      editor.chain().focus().removeAllCustomHighlights().run();
+
+      // Close the LLMEditor if it's open
+      setShowLLMEditor(false);
+    }
+  }, [editor]);
+
   return (
     <TooltipProvider>
       <div className="relative h-full flex flex-col">
         <style jsx global>
           {highlightStyles}
         </style>
-        <div className="flex-grow overflow-auto" ref={editorRef}>
+        <EditorHeader
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onRefresh={handleRefresh}
+        />
+        <div className="flex-grow overflow-auto pt-12" ref={editorRef}>
           <div className="min-h-full p-4">
             <EditorContent editor={editor} onMouseUp={handleTextSelection} />
           </div>
