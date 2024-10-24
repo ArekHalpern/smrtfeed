@@ -51,6 +51,10 @@ export function PaperCard({ paper, onClick }: PaperCardProps) {
               </Badge>
             )}
           </div>
+          {/* Add View Details text */}
+          <div className="mt-4 text-blue-500 text-sm font-medium">
+            View Details
+          </div>
         </CardContent>
       </Card>
     </motion.div>

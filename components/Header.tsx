@@ -1,6 +1,6 @@
 "use client";
 
-import { User, Home, Scroll, Newspaper } from "lucide-react";
+import { User, Home, Scroll } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -69,9 +69,9 @@ export function Header() {
               <NavLink href="/dashboard/write" icon={Home}>
                 Home
               </NavLink>
-              <NavLink href="/dashboard/feed" icon={Newspaper}>
+              {/* <NavLink href="/dashboard/feed" icon={Newspaper}>
                 Feed
-              </NavLink>
+              </NavLink> */}
 
               <NavLink href="/dashboard/papers" icon={Scroll}>
                 Papers
