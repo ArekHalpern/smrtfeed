@@ -161,11 +161,16 @@ const TiptapEditor: React.FC<TiptapEditorProps> = ({
     (newText: string) => {
       if (editor) {
         const { from, to } = editor.state.selection;
+        // Convert plain text line breaks to HTML paragraphs
+        const htmlContent = newText
+          .split("\n")
+          .map((line) => `<p>${line}</p>`)
+          .join("");
         editor
           .chain()
           .focus()
           .deleteRange({ from, to })
-          .insertContent(newText)
+          .insertContent(htmlContent)
           .unsetCustomHighlight()
           .run();
         onTextChange(editor.getHTML());
