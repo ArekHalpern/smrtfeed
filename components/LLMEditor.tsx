@@ -11,9 +11,7 @@ import {
   Maximize,
   Palette,
   FileJson,
-  Bold,
-  Italic,
-  Underline,
+  X,
 } from "lucide-react";
 import {
   Tooltip,
@@ -23,18 +21,17 @@ import {
 import prompts from "@/lib/prompts.json";
 import StructuredDataDisplay from "./StructuredDataDisplay";
 import ReactDOMServer from "react-dom/server";
-import { Editor } from "@tiptap/react";
 
 interface LLMEditorProps {
   onTextChange: (newText: string) => void;
   selectedText: string;
-  editor: Editor | null;
+  onClose: () => void;
 }
 
 const LLMEditor: React.FC<LLMEditorProps> = ({
   onTextChange,
   selectedText,
-  editor,
+  onClose,
 }) => {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -104,48 +101,24 @@ const LLMEditor: React.FC<LLMEditorProps> = ({
     },
   ];
 
-  const formattingIcons = [
-    {
-      icon: Bold,
-      tooltip: "Bold",
-      action: () => editor?.chain().focus().toggleBold().run(),
-    },
-    {
-      icon: Italic,
-      tooltip: "Italic",
-      action: () => editor?.chain().focus().toggleItalic().run(),
-    },
-    {
-      icon: Underline,
-      tooltip: "Underline",
-      action: () => editor?.chain().focus().toggleUnderline().run(),
-    },
-  ];
-
   return (
-    <div className="space-y-2">
-      <div className="flex items-center space-x-2 mb-2 backdrop-blur-md bg-white/30 dark:bg-gray-800/30 rounded-md p-1 border border-gray-200 dark:border-gray-700">
-        {formattingIcons.map(({ icon: Icon, tooltip, action }, index) => (
-          <Tooltip key={index}>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={action}
-                className="p-1 h-7 w-7 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-sm"
-              >
-                <Icon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom" align="center" sideOffset={5}>
-              <p>{tooltip}</p>
-            </TooltipContent>
-          </Tooltip>
-        ))}
+    <div className="p-2 space-y-2 max-w-md">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-medium text-gray-800 dark:text-gray-200">
+          Smrtfeed Editor
+        </span>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="h-6 w-6 p-0 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
+        >
+          <X className="h-4 w-4" />
+        </Button>
       </div>
-      <div className="flex items-center space-x-2 mb-2">
+      <div className="flex items-center space-x-1">
         <Input
-          className="flex-grow text-sm"
+          className="flex-grow text-xs"
           placeholder="Edit instructions..."
           value={prompt}
           onChange={handlePromptChange}
@@ -153,17 +126,17 @@ const LLMEditor: React.FC<LLMEditorProps> = ({
         <Button
           onClick={() => handleGetSuggestion()}
           disabled={isLoading || !prompt.trim() || !selectedText.trim()}
-          className="p-1 h-8 w-8"
+          className="p-1 h-7 w-7"
           size="sm"
         >
           {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
+            <Loader2 className="h-3 w-3 animate-spin" />
           ) : (
-            <Send className="h-4 w-4" />
+            <Send className="h-3 w-3" />
           )}
         </Button>
       </div>
-      <div className="flex items-center backdrop-blur-md bg-white/30 dark:bg-gray-800/30 rounded-md p-1 border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center space-x-1">
         {promptIcons.map(({ icon: Icon, tooltip, prompt, action }, index) => (
           <Tooltip key={index}>
             <TooltipTrigger asChild>
@@ -173,13 +146,13 @@ const LLMEditor: React.FC<LLMEditorProps> = ({
                 onClick={() =>
                   action ? action() : handleGetSuggestion(prompt)
                 }
-                className="p-1 h-7 w-7 text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-gray-700/50 rounded-sm"
+                className="p-1 h-6 w-6 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-sm"
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-3 w-3" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom" align="center" sideOffset={5}>
-              <p>{tooltip}</p>
+              <p className="text-xs">{tooltip}</p>
             </TooltipContent>
           </Tooltip>
         ))}
